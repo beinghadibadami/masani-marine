@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { Anchor, ArrowRight } from 'lucide-react'
+import { Anchor, ArrowRight, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../components/ui/Toast'
 
 export default function Register() {
   const [formData, setFormData] = useState({ fullName: '', email: '', password: '', confirm: '' })
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const { register } = useAuth()
   const navigate = useNavigate()
@@ -25,11 +26,32 @@ export default function Register() {
     }
     setLoading(true)
     try {
-      await register(formData.email, formData.password, formData.fullName)
+      const data = await register(formData.email, formData.password, formData.fullName)
+      
+      // If user enumeration protection is ON, Supabase returns success but data.user is null for existing accounts
+      if (!data?.user) {
+        toast.error(
+          <div className="flex flex-col gap-1">
+            <span>An account with this email already exists.</span>
+            <Link to="/login" className="underline font-bold">Sign in instead?</Link>
+          </div>
+        )
+        return
+      }
+
       toast.success('Success! Please check your email inbox to confirm your account, then sign in.')
       navigate(`/login?redirect=${encodeURIComponent(redirect)}`)
     } catch (err) {
-      toast.error(err.message || 'Failed to register.')
+      if (err.message?.toLowerCase().includes('already registered') || err.message?.toLowerCase().includes('exists')) {
+        toast.error(
+          <div className="flex flex-col gap-1">
+            <span>An account with this email already exists.</span>
+            <Link to="/login" className="underline font-bold">Sign in instead?</Link>
+          </div>
+        )
+      } else {
+        toast.error(err.message || 'Failed to register.')
+      }
     } finally {
       setLoading(false)
     }
@@ -66,20 +88,31 @@ export default function Register() {
                className="input border-[var(--color-border)]" placeholder="email@address.com"
              />
            </div>
-           <div>
-             <label className="label">Password</label>
-             <input 
-               type="password" name="password" required minLength="6" value={formData.password} onChange={handleChange}
-               className="input border-[var(--color-border)]" placeholder="••••••••"
-             />
-           </div>
-           <div>
-             <label className="label">Confirm Password</label>
-             <input 
-               type="password" name="confirm" required minLength="6" value={formData.confirm} onChange={handleChange}
-               className="input border-[var(--color-border)]" placeholder="••••••••"
-             />
-           </div>
+            <div>
+              <label className="label">Password</label>
+              <div className="relative">
+                <input 
+                  type={showPassword ? "text" : "password"} name="password" required minLength="6" value={formData.password} onChange={handleChange}
+                  className="input border-[var(--color-border)] pr-12" placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-muted)] p-1"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="label">Confirm Password</label>
+              <div className="relative">
+                <input 
+                  type={showPassword ? "text" : "password"} name="confirm" required minLength="6" value={formData.confirm} onChange={handleChange}
+                  className="input border-[var(--color-border)] pr-12" placeholder="••••••••"
+                />
+              </div>
+            </div>
            
            <button type="submit" disabled={loading} className="btn btn-primary w-full justify-center mt-4">
              {loading ? <div className="loader" style={{ width:20, height:20, borderWidth:2 }}/> : 'Create Account'}

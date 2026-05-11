@@ -15,11 +15,11 @@ export default function AccountLayout() {
   return (
     <div className="bg-[var(--color-surface-2)] min-h-[80vh] py-10">
       <div className="container">
-        <h1 className="font-heading text-3xl font-extrabold text-[var(--color-navy)] uppercase tracking-wide mb-8">
+        <h1 className="font-heading text-4xl font-extrabold text-[var(--color-navy)] uppercase tracking-wide mb-12">
           My Account
         </h1>
 
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-12">
           
           {/* Sidebar */}
           <aside className="lg:w-64 flex-shrink-0">

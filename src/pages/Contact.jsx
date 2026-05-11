@@ -46,9 +46,9 @@ export default function Contact() {
                   <div>
                     <div className="font-mono text-xs font-bold uppercase text-[var(--color-muted)] mb-1">Address</div>
                     <div className="text-[var(--color-text)] text-sm">
-                      Warehouse FZA-12,<br/>
-                      Jebel Ali Free Zone (Jafza),<br/>
-                      Dubai, United Arab Emirates
+                      FF-10, GOLDEN PLAZA,<br/>
+                      DESAI SHERI, BHAVNAGAR,<br/>
+                      GUJARAT 364001, INDIA
                     </div>
                   </div>
                 </div>
@@ -58,9 +58,9 @@ export default function Contact() {
                     <Phone size={20} />
                   </div>
                   <div>
-                    <div className="font-mono text-xs font-bold uppercase text-[var(--color-muted)] mb-1">Phone (24/7 Tech Support)</div>
-                    <a href="tel:+97141234567" className="text-[var(--color-text)] text-sm hover:text-[var(--color-primary)] font-bold transition-colors">
-                      +971 4 123 4567
+                    <div className="font-mono text-xs font-bold uppercase text-[var(--color-muted)] mb-1">Phone / WhatsApp</div>
+                    <a href="tel:+918200921272" className="text-[var(--color-text)] text-sm hover:text-[var(--color-primary)] font-bold transition-colors">
+                      +91 82009 21272
                     </a>
                   </div>
                 </div>
@@ -71,10 +71,10 @@ export default function Contact() {
                   </div>
                   <div>
                     <div className="font-mono text-xs font-bold uppercase text-[var(--color-muted)] mb-1">Email</div>
-                    <a href="mailto:info@masanimarine.com" className="text-[var(--color-text)] text-sm hover:text-[var(--color-primary)] font-bold transition-colors">
-                      info@masanimarine.com
+                    <a href="mailto:sales@masanienterprise.com" className="text-[var(--color-text)] text-sm hover:text-[var(--color-primary)] font-bold transition-colors">
+                      sales@masanienterprise.com
                     </a>
-                    <div className="text-[var(--color-muted)] text-xs mt-1">Sales: sales@masanimarine.com</div>
+                    <div className="text-[var(--color-muted)] text-xs mt-1">Direct: ZAHIR MASANI</div>
                   </div>
                 </div>
 
@@ -93,17 +93,18 @@ export default function Contact() {
               </div>
             </div>
             
-            {/* Map Placeholder */}
-            <div className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-xl h-64 shadow-sm flex items-center justify-center relative overflow-hidden group">
-               <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] transition-all group-hover:backdrop-blur-0" style={{
-                 backgroundImage: 'radial-gradient(var(--color-border) 1px, transparent 1px)',
-                 backgroundSize: '20px 20px'
-               }} />
-               <div className="relative z-10 text-center">
-                 <Anchor size={40} className="mx-auto text-[var(--color-primary)] mb-2" />
-                 <span className="font-heading font-bold text-[var(--color-navy)] uppercase block">Location Map</span>
-                 <span className="font-mono text-xs text-[var(--color-muted)]">Map integration pending</span>
-               </div>
+            {/* Google Map Embed */}
+            <div className="bg-white border border-[var(--color-border)] rounded-xl h-80 shadow-sm relative overflow-hidden">
+               <iframe 
+                 title="Masani Enterprise Location"
+                 width="100%" 
+                 height="100%" 
+                 frameBorder="0" 
+                 scrolling="no" 
+                 marginHeight="0" 
+                 marginWidth="0" 
+                 src="https://maps.google.com/maps?q=FF-10,GOLDEN%20PLAZA,DESAI%20SHERI,BHAVNAGAR%20364001&t=&z=15&ie=UTF8&iwloc=&output=embed"
+               />
             </div>
           </div>
 

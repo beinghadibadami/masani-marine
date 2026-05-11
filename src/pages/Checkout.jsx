@@ -1,11 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
-import { Check, ShieldCheck, MapPin, CreditCard, CheckCircle } from 'lucide-react'
+import { 
+  Check, ShieldCheck, MapPin, CreditCard, CheckCircle, 
+  Building2, Info, AlertTriangle, ChevronLeft, Loader2
+} from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useCartContext } from '../context/CartContext'
 import { useOrders } from '../hooks/useOrders'
 import { useToast } from '../components/ui/Toast'
-import { PayPalButtons } from '@paypal/react-paypal-js' // Handled in index/app later
+import { PayPalButtons } from '@paypal/react-paypal-js'
 import { supabase } from '../lib/supabase'
 
 export default function Checkout() {
@@ -16,13 +19,31 @@ export default function Checkout() {
   const navigate = useNavigate()
 
   const [step, setStep] = useState(1) // 1: Shipping, 2: Payment
-  const [shippingData, setShippingData] = useState(null)
+  const [shippingData, setShippingData] = useState(() => {
+    const saved = localStorage.getItem('masani_shipping_data')
+    return saved ? JSON.parse(saved) : null
+  })
+  const [paymentMethod, setPaymentMethod] = useState(() => {
+    const subtotalCalc = itemCount > 0 ? items.reduce((acc, item) => acc + (item.price * item.quantity), 0) : 0
+    const totalCalc = subtotalCalc + (subtotalCalc > 10000 ? 0 : 150)
+    return totalCalc > 5000 ? 'bank_transfer' : 'paypal'
+  })
+  const [isProcessing, setIsProcessing] = useState(false)
+
+  // Persist shipping data
+  useEffect(() => {
+    if (shippingData) {
+      localStorage.setItem('masani_shipping_data', JSON.stringify(shippingData))
+    }
+  }, [shippingData])
   
   if (itemCount === 0) return <Navigate to="/cart" replace />
   if (!user) return <Navigate to="/login?redirect=/checkout" replace />
 
   const shippingEstimate = subtotal > 10000 ? 0 : 150
   const total = subtotal + shippingEstimate
+  const PAYPAL_LIMIT = 5000
+  const exceedsPaypalLimit = total > PAYPAL_LIMIT
 
   const handleShippingSubmit = async (e) => {
     e.preventDefault()
@@ -44,6 +65,7 @@ export default function Checkout() {
 
   // Handle successful paypal approval
   const handlePaymentApprove = async (data, actions) => {
+    setIsProcessing(true)
     try {
       // Server-side capture via Supabase Edge Function
       const res = await supabase.functions.invoke('verify-paypal-payment', { 
@@ -60,10 +82,13 @@ export default function Checkout() {
         shippingAddress: shippingData,
         subtotal,
         total,
+        paymentMethod: 'paypal',
+        paymentStatus: 'paid',
         paypalOrderId: data.orderID,
         paypalDetails: details
       })
       
+      localStorage.removeItem('masani_shipping_data')
       clearCart()
       toast.success('Payment successful! Order placed.')
       navigate(`/order-confirmation`, { state: { orderId: order.id } })
@@ -71,6 +96,31 @@ export default function Checkout() {
     } catch (err) {
       toast.error('Failed to process order: ' + (err.message || 'Unknown error'))
       console.error('Order creation error:', err)
+    } finally {
+      setIsProcessing(false)
+    }
+  }
+
+  const handleBankTransfer = async () => {
+    setIsProcessing(true)
+    try {
+      const order = await createOrder({
+        cartItems: items,
+        shippingAddress: shippingData,
+        subtotal,
+        total,
+        paymentMethod: 'bank_transfer',
+        paymentStatus: 'awaiting_payment'
+      })
+      
+      localStorage.removeItem('masani_shipping_data')
+      clearCart()
+      toast.success('Order placed! Awaiting bank transfer.')
+      navigate(`/order-confirmation`, { state: { orderId: order.id } })
+    } catch (err) {
+      toast.error(err.message)
+    } finally {
+      setIsProcessing(false)
     }
   }
 
@@ -174,9 +224,9 @@ export default function Checkout() {
 
                 {step === 2 && (
                   <div>
-                    <div className="mb-6 p-4 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] flex items-start gap-4">
+                    <div className="mb-8 p-4 rounded-lg bg-[var(--color-surface-2)] border border-[var(--color-border)] flex items-start gap-4">
                       <MapPin className="text-[var(--color-muted)] flex-shrink-0 mt-1" size={20}/>
-                      <div>
+                      <div className="flex-1">
                         <div className="text-sm font-semibold uppercase text-[var(--color-navy)] mb-1">Shipping To:</div>
                         <div className="text-sm text-[var(--color-text)]">
                           {shippingData.name} <br/>
@@ -184,49 +234,125 @@ export default function Checkout() {
                           {shippingData.city}, {shippingData.state} {shippingData.zip}<br/>
                           {shippingData.country}
                         </div>
-                        <button onClick={() => setStep(1)} className="text-xs text-[var(--color-primary)] font-mono uppercase mt-2 hover:underline">
-                          Edit Address
+                        <button onClick={() => setStep(1)} className="text-xs text-[var(--color-primary)] font-mono uppercase mt-2 hover:underline flex items-center gap-1">
+                          <ChevronLeft size={12}/> Edit Address
                         </button>
                       </div>
                     </div>
 
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 flex flex-col items-center justify-center text-center">
-                      <ShieldCheck size={40} className="text-blue-500 mb-3" />
-                      <h3 className="font-heading text-lg font-bold text-blue-900 uppercase">Complete Your Order</h3>
-                      <p className="text-blue-700/80 text-sm mb-6 max-w-md">
-                        Please proceed with payment via PayPal. You can use your PayPal account or a credit/debit card securely.
-                      </p>
-                      
-                      <div className="w-full max-w-sm relative z-0">
-                        {/* 
-                          PayPal integration requires wrapper in App.jsx.
-                          Since we are setting it up later, we will use the actual component.
-                          Make sure VITE_PAYPAL_CLIENT_ID is in .env 
-                        */}
-                        <PayPalButtons 
-                           style={{ layout: "vertical", shape: "rect", color: "gold" }}
-                           createOrder={(data, actions) => {
-                             return actions.order.create({
-                               purchase_units: [{ 
-                                 amount: { 
-                                   value: total.toString(),
-                                   currency_code: "USD"
-                                 } 
-                               }]
-                             })
-                           }}
-                           onApprove={handlePaymentApprove}
-                           onError={() => toast.error('Payment widget error. Please check configuration.')}
-                        />
+                    <div className="mb-8">
+                      <label className="label mb-4">Select Payment Method</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <button 
+                          onClick={() => setPaymentMethod('paypal')}
+                          disabled={exceedsPaypalLimit}
+                          className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${paymentMethod === 'paypal' ? 'border-[var(--color-accent)] bg-[var(--color-cyan-glow)]' : 'border-[var(--color-border)] hover:border-[var(--color-primary-light)]'} ${exceedsPaypalLimit ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'paypal' ? 'border-[var(--color-accent)]' : 'border-[var(--color-border)]'}`}>
+                              {paymentMethod === 'paypal' && <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-accent)]" />}
+                            </div>
+                            <div className="text-left">
+                              <span className="font-bold uppercase text-sm tracking-wide block">PayPal / Card</span>
+                              {exceedsPaypalLimit && <span className="text-[10px] text-red-500 font-bold uppercase">Over $5k Limit</span>}
+                            </div>
+                          </div>
+                          <CreditCard size={20} className={paymentMethod === 'paypal' ? 'text-[var(--color-accent)]' : 'text-[var(--color-muted)]'}/>
+                        </button>
 
-                        {/* Fallback mock button for dev if needed without valid client ID */}
-                        {!import.meta.env.VITE_PAYPAL_CLIENT_ID && (
-                           <button 
-                             onClick={() => handlePaymentApprove({ orderID: 'mock-pp-123' }, { order: { capture: async() => ({}) } })}
-                             className="paypal-btn-placeholder mt-2"
-                           >
-                             Mock PayPal Payment (Dev)
-                           </button>
+                        <button 
+                          onClick={() => setPaymentMethod('bank_transfer')}
+                          className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${paymentMethod === 'bank_transfer' ? 'border-[var(--color-accent)] bg-[var(--color-cyan-glow)]' : 'border-[var(--color-border)] hover:border-[var(--color-primary-light)]'}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'bank_transfer' ? 'border-[var(--color-accent)]' : 'border-[var(--color-border)]'}`}>
+                              {paymentMethod === 'bank_transfer' && <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-accent)]" />}
+                            </div>
+                            <span className="font-bold uppercase text-sm tracking-wide">Bank Transfer</span>
+                          </div>
+                          <Building2 size={20} className={paymentMethod === 'bank_transfer' ? 'text-[var(--color-accent)]' : 'text-[var(--color-muted)]'}/>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="bg-white border border-[var(--color-border)] rounded-xl overflow-hidden shadow-sm">
+                      <div className="p-6">
+                        {paymentMethod === 'paypal' ? (
+                          <div className="flex flex-col items-center text-center">
+                            <ShieldCheck size={40} className="text-green-500 mb-3" />
+                            <h3 className="font-heading text-lg font-bold text-[var(--color-navy)] uppercase">Instant Secure Payment</h3>
+                            <p className="text-[var(--color-muted)] text-sm mb-6 max-w-md">
+                              Your order will be processed immediately after PayPal confirmation.
+                            </p>
+                            
+                            <div className="w-full max-w-sm relative z-0">
+                              {isProcessing ? (
+                                <div className="flex flex-col items-center py-4">
+                                  <Loader2 className="animate-spin text-[var(--color-primary)] mb-2" size={32} />
+                                  <p className="text-xs font-mono uppercase text-[var(--color-muted)]">Processing Payment...</p>
+                                </div>
+                              ) : (
+                                <PayPalButtons 
+                                  style={{ layout: "vertical", shape: "rect", color: "gold" }}
+                                  createOrder={(data, actions) => {
+                                    return actions.order.create({
+                                      purchase_units: [{ 
+                                        amount: { 
+                                          value: total.toString(),
+                                          currency_code: "USD"
+                                        } 
+                                      }]
+                                    })
+                                  }}
+                                  onApprove={handlePaymentApprove}
+                                  onError={() => toast.error('PayPal widget error. Please check configuration.')}
+                                />
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-6">
+                            <div className="flex items-start gap-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                              <Info size={20} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                              <div className="text-sm text-amber-900 leading-relaxed">
+                                <p className="font-bold mb-1 uppercase tracking-tight">Wire Transfer Instructions</p>
+                                After placing your order, please transfer the total amount to the bank account below. 
+                                Include your <strong>Order ID</strong> as the payment reference. 
+                                Your order will be shipped once the payment is confirmed.
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-[var(--color-surface-2)] p-6 rounded-xl border border-[var(--color-border)]">
+                              <div>
+                                <label className="text-[10px] uppercase tracking-widest text-[var(--color-muted)] font-bold block mb-1">Bank Name</label>
+                                <div className="text-sm font-bold text-[var(--color-navy)]">HDFC BANK</div>
+                              </div>
+                              <div>
+                                <label className="text-[10px] uppercase tracking-widest text-[var(--color-muted)] font-bold block mb-1">Account Name</label>
+                                <div className="text-sm font-bold text-[var(--color-navy)]">MASANI MARINE</div>
+                              </div>
+                              <div>
+                                <label className="text-[10px] uppercase tracking-widest text-[var(--color-muted)] font-bold block mb-1">Account Number</label>
+                                <div className="text-sm font-mono font-bold text-[var(--color-navy)]">50200030539450</div>
+                              </div>
+                              <div>
+                                <label className="text-[10px] uppercase tracking-widest text-[var(--color-muted)] font-bold block mb-1">IFSC Code</label>
+                                <div className="text-sm font-mono font-bold text-[var(--color-navy)]">HDFC0001687</div>
+                              </div>
+                            </div>
+
+                            <button 
+                              onClick={handleBankTransfer}
+                              disabled={isProcessing}
+                              className="btn btn-brand w-full justify-center py-4 text-lg"
+                            >
+                              {isProcessing ? <Loader2 className="animate-spin" size={20} /> : 'Place Order & Get Invoice'}
+                            </button>
+                            
+                            <p className="text-center text-[10px] text-[var(--color-muted)] uppercase tracking-widest">
+                              By clicking, you agree to complete the transfer within 7 days.
+                            </p>
+                          </div>
                         )}
                       </div>
                     </div>

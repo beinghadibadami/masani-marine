@@ -70,25 +70,32 @@ function TimelineItemRight({ year, title, desc }) {
 export default function About() {
   return (
     <div className="bg-[var(--color-bg)] min-h-screen">
-
       {/* Hero */}
-      <section className="ocean-bg px-4 py-20 lg:py-32 relative text-center">
+      <section className="bg-white px-4 py-24 lg:py-40 relative text-center overflow-hidden border-b border-[var(--color-border)]">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 opacity-[0.1]" style={{ 
+            backgroundImage: 'linear-gradient(var(--color-primary) 1px, transparent 1px), linear-gradient(90deg, var(--color-primary) 1px, transparent 1px)',
+            backgroundSize: '60px 60px' 
+          }} />
+        </div>
+
         <div className="container relative z-10">
-          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="section-label justify-center mb-6" style={{ color: '#00AACC', borderColor: '#00AACC' }}>
-            <span style={{ background: '#00AACC' }} />Our Story<span style={{ background: '#00AACC' }} />
+          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="section-label justify-center mb-10 text-[var(--color-accent)]">
+            Our Story
           </motion.div>
-          <motion.h1 initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="hero-text-large mb-6">
-            <span style={{ color: '#ffffff' }}>Equipping the </span><span style={{ color: '#00AACC' }}>Maritime World</span>
+          <motion.h1 initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="hero-text-large mb-12">
+            <span className="text-black">Equipping the </span><span style={{ color: '#0077A8' }}>Maritime World</span>
           </motion.h1>
-          <motion.p initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="text-white/70 max-w-2xl mx-auto text-lg">
+          <motion.p initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="text-[var(--color-muted)] max-w-2xl mx-auto text-xl leading-relaxed font-medium" style={{ marginTop: '50px' }}>
             Since 2008, Masani Marine has been a trusted partner to the global shipping industry, providing precision equipment, unparalleled support, and deep technical expertise.
           </motion.p>
         </div>
       </section>
 
       {/* Stats */}
-      <section className="relative z-20 -mt-12 md:-mt-16 mx-auto container max-w-6xl">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-4">
+      <section className="relative z-20 mt-20 mb-32 mx-auto container max-w-6xl">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 px-4">
           <StatBox value="16" suffix="+" label="Years Experience" />
           <StatBox value="500" suffix="+" label="Certified Products" />
           <StatBox value="42" suffix="" label="Countries Served" />

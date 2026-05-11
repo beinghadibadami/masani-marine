@@ -44,7 +44,7 @@ export function Footer() {
               {/* Social */}
               <div className="flex gap-3 mt-5">
                 {[Globe, MessageSquare, Share2].map((Icon, i) => (
-                  <a key={i} href="#" className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center text-white/60 hover:bg-[#00AACC] hover:text-white transition-all">
+                  <a key={i} href="#" className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white/50 hover:bg-[var(--color-accent)] hover:text-white transition-all">
                     <Icon size={16} />
                   </a>
                 ))}
@@ -54,14 +54,14 @@ export function Footer() {
             {/* Quick Links */}
             <div>
               <h4 className="font-heading text-lg font-bold uppercase tracking-wider mb-5 flex items-center gap-2">
-                <span className="w-5 h-0.5 bg-[#00AACC] inline-block" />
+                <span className="w-5 h-0.5 bg-[var(--color-accent)] inline-block" />
                 Quick Links
               </h4>
               <ul className="space-y-2">
                 {QUICK_LINKS.map(link => (
                   <li key={link.to}>
-                    <Link to={link.to} className="text-white/60 hover:text-[#00AACC] text-sm transition-colors flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-[#00AACC] inline-block" />
+                    <Link to={link.to} className="text-white/60 hover:text-[var(--color-accent)] text-sm transition-colors flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-[var(--color-accent)]/40 inline-block" />
                       {link.label}
                     </Link>
                   </li>
@@ -72,14 +72,14 @@ export function Footer() {
             {/* Categories */}
             <div>
               <h4 className="font-heading text-lg font-bold uppercase tracking-wider mb-5 flex items-center gap-2">
-                <span className="w-5 h-0.5 bg-[#00AACC] inline-block" />
+                <span className="w-5 h-0.5 bg-[var(--color-accent)] inline-block" />
                 Categories
               </h4>
               <ul className="space-y-2">
                 {CATEGORY_LINKS.map(link => (
                   <li key={link.to}>
-                    <Link to={link.to} className="text-white/60 hover:text-[#00AACC] text-sm transition-colors flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-[#00AACC] inline-block" />
+                    <Link to={link.to} className="text-white/60 hover:text-[var(--color-accent)] text-sm transition-colors flex items-center gap-2">
+                      <span className="w-1 h-1 rounded-full bg-[var(--color-accent)]/40 inline-block" />
                       {link.label}
                     </Link>
                   </li>
@@ -90,24 +90,24 @@ export function Footer() {
             {/* Contact */}
             <div>
               <h4 className="font-heading text-lg font-bold uppercase tracking-wider mb-5 flex items-center gap-2">
-                <span className="w-5 h-0.5 bg-[#00AACC] inline-block" />
+                <span className="w-5 h-0.5 bg-[var(--color-accent)] inline-block" />
                 Contact
               </h4>
               <ul className="space-y-4">
                 <li className="flex gap-3">
-                  <MapPin size={16} className="text-[#00AACC] flex-shrink-0 mt-0.5" />
-                  <span className="text-white/60 text-sm">Jebel Ali Free Zone, Dubai, UAE</span>
+                  <MapPin size={16} className="text-[var(--color-accent)] flex-shrink-0 mt-0.5" />
+                  <span className="text-white/60 text-sm">FF-10, GOLDEN PLAZA, DESAI SHERI, BHAVNAGAR 364001, INDIA</span>
                 </li>
                 <li className="flex gap-3">
-                  <Phone size={16} className="text-[#00AACC] flex-shrink-0" />
-                  <a href="tel:+97141234567" className="text-white/60 text-sm hover:text-[#00AACC] transition-colors">
-                    +971 4 123 4567
+                  <Phone size={16} className="text-[var(--color-accent)] flex-shrink-0" />
+                  <a href="tel:+918200921272" className="text-white/60 text-sm hover:text-[var(--color-accent)] transition-colors">
+                    +91 82009 21272
                   </a>
                 </li>
                 <li className="flex gap-3">
-                  <Mail size={16} className="text-[#00AACC] flex-shrink-0" />
-                  <a href="mailto:info@masanimarine.com" className="text-white/60 text-sm hover:text-[#00AACC] transition-colors break-all">
-                    info@masanimarine.com
+                  <Mail size={16} className="text-[var(--color-accent)] flex-shrink-0" />
+                  <a href="mailto:sales@masanienterprise.com" className="text-white/60 text-sm hover:text-[var(--color-accent)] transition-colors break-all">
+                    sales@masanienterprise.com
                   </a>
                 </li>
               </ul>
@@ -126,7 +126,7 @@ export function Footer() {
           {/* Copyright bar */}
           <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-white/40 text-sm font-mono">
-              © {new Date().getFullYear()} Masani Marine FZE. All rights reserved.
+              © {new Date().getFullYear()} Masani Enterprise. All rights reserved.
             </p>
             <div className="flex gap-5">
               <a href="#" className="text-white/40 hover:text-white/70 text-xs transition-colors">Privacy Policy</a>

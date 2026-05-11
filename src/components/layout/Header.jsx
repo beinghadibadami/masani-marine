@@ -52,11 +52,11 @@ export function Header() {
         }`}
         style={{ zIndex: 100 }}
       >
-        <div className="container">
-          <div className="flex items-center justify-between h-24 md:h-32">
+        <div className="max-w-full px-2 md:px-8">
+          <div className="flex items-center justify-between h-20 md:h-24">
             {/* Logo */}
             <Link to="/" className="flex items-center flex-shrink-0">
-              <img src="/logo.png" alt="Masani Marine" className="h-20 md:h-28 w-auto object-contain" />
+              <img src="/logo.png" alt="Masani Marine" className="h-16 md:h-24 w-auto object-contain" />
             </Link>
 
             {/* Desktop Nav */}
@@ -148,7 +148,7 @@ export function Header() {
                   </AnimatePresence>
                 </div>
               ) : (
-                <Link to="/login" className="btn btn-primary btn-sm">
+                <Link to="/login" className="btn btn-brand btn-sm">
                   Sign In
                 </Link>
               )}

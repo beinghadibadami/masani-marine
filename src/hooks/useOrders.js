@@ -37,41 +37,86 @@ export function useOrders() {
     return data
   }
 
-  async function createOrder({ cartItems, shippingAddress, subtotal, total, paypalOrderId, paypalDetails }) {
-    const { data: order, error } = await supabase
-      .from('orders')
-      .insert({
-        user_id: user.id,
-        shipping_address: shippingAddress,
-        subtotal,
-        total,
-        paypal_order_id: paypalOrderId,
-        payment_status: 'paid',
-        status: 'pending',
-      })
-      .select()
-      .single()
+  async function createOrder({ 
+    cartItems, 
+    shippingAddress, 
+    subtotal, 
+    total, 
+    paymentMethod = 'paypal',
+    paymentStatus = 'paid',
+    paypalOrderId = null, 
+    paypalDetails = null 
+  }) {
+    // 1. Verify stock before proceeding
+    const { data: currentProducts, error: stockCheckError } = await supabase
+      .from('products')
+      .select('id, name, stock')
+      .in('id', cartItems.map(i => i.id))
 
-    if (error) throw error
+    if (stockCheckError) throw new Error('Could not verify stock: ' + stockCheckError.message)
 
-    const orderItems = cartItems.map(item => ({
-      order_id: order.id,
-      product_id: item.id,
-      quantity: item.quantity,
-      unit_price: item.price,
-    }))
+    for (const item of cartItems) {
+      const product = currentProducts.find(p => p.id === item.id)
+      if (!product || product.stock < item.quantity) {
+        throw new Error(`Insufficient stock for ${product?.name || 'unknown item'}`)
+      }
+    }
 
-    const { error: itemsError } = await supabase
-      .from('order_items')
-      .insert(orderItems)
-
-    if (itemsError) throw itemsError
-
-    // Insert into transactions table
-    if (paypalDetails) {
-      const { error: txError } = await supabase
-        .from('transactions')
+    let order = null
+    try {
+      // 2. Create the order
+      const { data: newOrder, error: orderError } = await supabase
+        .from('orders')
         .insert({
+          user_id: user.id,
+          shipping_address: shippingAddress,
+          subtotal,
+          total,
+          paypal_order_id: paypalOrderId,
+          payment_method: paymentMethod,
+          payment_status: paymentStatus,
+          status: 'pending',
+        })
+        .select()
+        .single()
+
+      if (orderError) throw orderError
+      order = newOrder
+
+      // 3. Create order items
+      const orderItems = cartItems.map(item => ({
+        order_id: order.id,
+        product_id: item.id,
+        quantity: item.quantity,
+        unit_price: item.price,
+      }))
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems)
+
+      if (itemsError) throw itemsError
+
+      // 4. Update stock levels
+      for (const item of cartItems) {
+        const { error: stockUpdateError } = await supabase
+          .rpc('decrement_stock', { 
+            row_id: item.id, 
+            dec_amt: item.quantity 
+          })
+        
+        // Fallback if RPC doesn't exist yet
+        if (stockUpdateError) {
+           await supabase
+            .from('products')
+            .update({ stock: (currentProducts.find(p => p.id === item.id).stock - item.quantity) })
+            .eq('id', item.id)
+        }
+      }
+
+      // 5. Log transaction if it was a PayPal payment
+      if (paypalDetails) {
+        await supabase.from('transactions').insert({
           order_id: order.id,
           paypal_order_id: paypalOrderId,
           payer_email: paypalDetails.payer?.email_address,
@@ -80,15 +125,24 @@ export function useOrders() {
           status: paypalDetails.status,
           full_response: paypalDetails,
         })
-      if (txError) {
-        console.error('Failed to log transaction:', txError)
-        // We don't throw here to avoid failing the order if the log fails, 
-        // but in production you'd want robust error handling.
       }
-    }
 
-    await fetchOrders()
-    return order
+      await fetchOrders()
+      return order
+
+    } catch (err) {
+      // 6. Safety Net: If PayPal was captured but DB failed, log to failed_transactions
+      if (paymentStatus === 'paid' && !order && paypalOrderId) {
+        await supabase.from('failed_transactions').insert({
+          paypal_order_id: paypalOrderId,
+          user_id: user.id,
+          cart_snapshot: cartItems,
+          error_message: err.message,
+          amount: total,
+        })
+      }
+      throw err
+    }
   }
 
   async function updateOrderStatus(orderId, status, trackingNumber = null) {

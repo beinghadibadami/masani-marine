@@ -55,7 +55,7 @@ export default function OrderConfirmation() {
           {isLoading ? (
             <div className="loader my-8" />
           ) : order ? (
-             <div className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-xl p-6 mb-10 mx-auto max-w-md text-left">
+            <div className="bg-[var(--color-surface-2)] border border-[var(--color-border)] rounded-xl p-6 mb-10 mx-auto max-w-md text-left">
               <div className="flex justify-between border-b border-[var(--color-border)] pb-3 mb-3">
                 <span className="text-[var(--color-muted)] text-sm">Order Number</span>
                 <span className="font-mono text-[var(--color-navy)] font-bold">{order.id.slice(0, 13).toUpperCase()}</span>
@@ -65,13 +65,30 @@ export default function OrderConfirmation() {
                 <span className="text-[var(--color-text)] text-sm">{new Date(order.created_at).toLocaleDateString()}</span>
               </div>
               <div className="flex justify-between border-b border-[var(--color-border)] pb-3 mb-3">
-                <span className="text-[var(--color-muted)] text-sm">Amount Paid</span>
+                <span className="text-[var(--color-muted)] text-sm">{order.payment_status === 'awaiting_payment' ? 'Amount Due' : 'Amount Paid'}</span>
                 <span className="text-[var(--color-primary)] font-bold">${order.total?.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[var(--color-muted)] text-sm">Est. Delivery</span>
-                <span className="text-[var(--color-text)] font-semibold text-sm">3-5 Business Days</span>
+                <span className="text-[var(--color-muted)] text-sm">Payment Method</span>
+                <span className="text-[var(--color-text)] text-sm uppercase font-bold tracking-tight">
+                  {order.payment_method === 'bank_transfer' ? 'Wire Transfer' : 'PayPal'}
+                </span>
               </div>
+
+              {order.payment_status === 'awaiting_payment' && (
+                <div className="mt-6 pt-6 border-t border-[var(--color-border)]">
+                  <div className="flex items-center gap-2 text-amber-600 font-bold text-xs uppercase tracking-widest mb-4">
+                    <Info size={14} /> Pending Wire Transfer
+                  </div>
+                  <div className="space-y-3 font-mono text-[10px] text-[var(--color-muted)]">
+                    <div className="flex justify-between"><span>Bank:</span> <span className="text-[var(--color-navy)] font-bold">HDFC BANK</span></div>
+                    <div className="flex justify-between"><span>Acc Name:</span> <span className="text-[var(--color-navy)] font-bold">MASANI MARINE</span></div>
+                    <div className="flex justify-between"><span>Acc No:</span> <span className="text-[var(--color-navy)] font-bold">50200030539450</span></div>
+                    <div className="flex justify-between"><span>IFSC:</span> <span className="text-[var(--color-navy)] font-bold">HDFC0001687</span></div>
+                    <div className="flex justify-between"><span>Reference:</span> <span className="text-red-600 font-bold underline">{order.id.slice(0, 8).toUpperCase()}</span></div>
+                  </div>
+                </div>
+              )}
             </div>
           ) : null}
 

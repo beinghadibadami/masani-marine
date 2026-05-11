@@ -12,7 +12,7 @@ export function ToastProvider({ children }) {
     setToasts(prev => [...prev, { id, message, type }])
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id))
-    }, 7000)
+    }, 15000)
   }, [])
 
   const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id))
