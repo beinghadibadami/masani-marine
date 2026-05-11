@@ -1,0 +1,51 @@
+// Mock categories data — replace with Supabase queries when ready
+export const mockCategories = [
+  {
+    id: 'cat-1',
+    name: 'Navigation Systems',
+    slug: 'navigation-systems',
+    description: 'Advanced GPS, radar, and electronic chart display systems for precise maritime navigation.',
+    image: 'https://picsum.photos/seed/nav/600/400',
+    productCount: 2,
+  },
+  {
+    id: 'cat-2',
+    name: 'Propulsion',
+    slug: 'propulsion',
+    description: 'Marine propulsion systems, thrusters, propellers, and drive systems for all vessel types.',
+    image: 'https://picsum.photos/seed/prop/600/400',
+    productCount: 2,
+  },
+  {
+    id: 'cat-3',
+    name: 'Safety Equipment',
+    slug: 'safety-equipment',
+    description: 'Life-saving appliances, fire suppression systems, and emergency signaling equipment.',
+    image: 'https://picsum.photos/seed/safe/600/400',
+    productCount: 2,
+  },
+  {
+    id: 'cat-4',
+    name: 'Deck Machinery',
+    slug: 'deck-machinery',
+    description: 'Winches, capstans, cranes, and mooring equipment engineered for demanding deck operations.',
+    image: 'https://picsum.photos/seed/deck/600/400',
+    productCount: 2,
+  },
+  {
+    id: 'cat-5',
+    name: 'Marine Electronics',
+    slug: 'marine-electronics',
+    description: 'Communication systems, AIS transponders, VHF radios, and satellite equipment.',
+    image: 'https://picsum.photos/seed/elec/600/400',
+    productCount: 2,
+  },
+  {
+    id: 'cat-6',
+    name: 'Engine Room',
+    slug: 'engine-room',
+    description: 'Generators, pumps, heat exchangers, and engine room monitoring systems.',
+    image: 'https://picsum.photos/seed/eng/600/400',
+    productCount: 2,
+  },
+]
