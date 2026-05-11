@@ -74,11 +74,11 @@ export default function Dashboard() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8EDF4" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#5A7A8A', fontFamily: 'DM Mono' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#5A7A8A', fontFamily: 'DM Mono' }} tickFormatter={(val) => `$${val}`} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#5A7A8A', fontFamily: 'Inter' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#5A7A8A', fontFamily: 'Inter' }} tickFormatter={(val) => `$${val}`} />
                 <Tooltip 
                   cursor={{fill: 'rgba(0,119,168,0.05)'}}
-                  contentStyle={{ borderRadius: '8px', border: '1px solid #CBD5E1', fontFamily: 'Figtree', fontSize: '13px', fontWeight: 600 }} 
+                  contentStyle={{ borderRadius: '8px', border: '1px solid #CBD5E1', fontFamily: 'Inter', fontSize: '13px', fontWeight: 600 }} 
                 />
                 <Bar dataKey="sales" fill="var(--color-primary)" radius={[4, 4, 0, 0]} maxBarSize={50} />
               </BarChart>

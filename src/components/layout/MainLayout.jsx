@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import { Header } from './Header'
 import { Footer } from './Footer'
+import { FloatingWhatsApp } from '../ui/FloatingWhatsApp'
 
 export function MainLayout() {
   const location = useLocation()
@@ -12,6 +13,7 @@ export function MainLayout() {
       <main className="flex-1 w-full relative">
         <Outlet />
       </main>
+      <FloatingWhatsApp />
       {!isAuthPage && <Footer />}
     </div>
   )

@@ -34,14 +34,14 @@ export function AdminLayout() {
               <Anchor size={18} style={{ color: '#00AACC' }} />
             </div>
             <div>
-              <div className="font-heading text-base font-bold text-white uppercase tracking-wide">Masani Marine</div>
-              <div className="font-mono text-[9px] text-white/40 tracking-widest uppercase">Admin Panel</div>
+              <div className="font-sans text-base font-bold text-white uppercase tracking-wide">Masani Marine</div>
+              <div className="font-sans text-[9px] text-white/40 tracking-widest uppercase">Admin Panel</div>
             </div>
           </div>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 py-4">
+        <nav className="flex-1 py-4 font-sans">
           {ADMIN_LINKS.map(({ to, end, icon: Icon, label }) => (
             <NavLink
               key={to}
@@ -79,13 +79,13 @@ export function AdminLayout() {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
         <header className="bg-white border-b border-[var(--color-border)] px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-[var(--color-muted)] breadcrumb">
+          <div className="flex items-center gap-2 text-sm text-[var(--color-muted)] breadcrumb font-sans">
             <NavLink to="/" className="hover:text-[var(--color-primary)]">Store</NavLink>
             <ChevronRight size={14} />
             <span className="text-[var(--color-navy)] font-semibold">Admin</span>
           </div>
           <div className="lg:hidden">
-            <span className="font-heading text-sm font-bold text-[var(--color-navy)] uppercase">Admin Panel</span>
+            <span className="font-sans text-sm font-bold text-[var(--color-navy)] uppercase">Admin Panel</span>
           </div>
         </header>
 

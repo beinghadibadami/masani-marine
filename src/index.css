@@ -54,7 +54,7 @@ button { cursor: pointer; font-family: inherit; }
 
 /* ─── Typography Utilities ─── */
 .font-heading { font-family: 'Inter', sans-serif; font-weight: 700; }
-.font-mono { font-family: 'JetBrains Mono', monospace; }
+.font-mono { font-family: 'Inter', sans-serif; } /* Unified to Inter */
 .font-body { font-family: 'Inter', sans-serif; }
 
 /* ─── Scrollbar ─── */
@@ -289,7 +289,7 @@ button { cursor: pointer; font-family: inherit; }
   align-items: center;
   padding: 0.2rem 0.65rem;
   border-radius: 999px;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.05em;
@@ -304,7 +304,7 @@ button { cursor: pointer; font-family: inherit; }
 
 /* Section headings */
 .section-label {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.1em;
@@ -327,7 +327,7 @@ button { cursor: pointer; font-family: inherit; }
 
 /* Trust bar */
 .trust-item {
-  font-family: 'DM Mono', monospace;
+  font-family: 'Inter', sans-serif;
   color: rgba(255,255,255,0.85);
   display: flex;
   align-items: center;
@@ -355,7 +355,7 @@ button { cursor: pointer; font-family: inherit; }
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   color: var(--color-text);
-  font-family: 'Figtree', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.95rem;
   transition: border-color var(--transition), box-shadow var(--transition);
   outline: none;
@@ -368,7 +368,7 @@ button { cursor: pointer; font-family: inherit; }
 
 .label {
   display: block;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 0.8rem;
   font-weight: 500;
   letter-spacing: 0.05em;
@@ -389,7 +389,7 @@ select.input {
 /* Table */
 .data-table { width: 100%; border-collapse: collapse; }
 .data-table th {
-  font-family: 'DM Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.1em;
@@ -414,7 +414,7 @@ select.input {
   gap: 0.6rem;
   padding: 0.65rem 1rem;
   border-radius: var(--radius);
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 600;
   font-size: 1.05rem;
   letter-spacing: 0.05em;
@@ -437,7 +437,7 @@ select.input {
   padding: 0.85rem 1.25rem;
   border-radius: var(--radius);
   box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-  font-family: 'Figtree', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 0.92rem;
   min-width: 280px;
   max-width: 400px;
@@ -479,7 +479,7 @@ select.input {
   width: 36px; height: 36px;
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-family: 'DM Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-weight: 700;
   font-size: 0.9rem;
   transition: all 300ms ease;
@@ -518,7 +518,7 @@ select.input {
 /* Tabs */
 .tab-btn {
   padding: 0.6rem 1.4rem;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 600;
   font-size: 1rem;
   letter-spacing: 0.06em;
@@ -540,7 +540,7 @@ select.input {
 
 /* SKU tag */
 .sku-tag {
-  font-family: 'DM Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 0.78rem;
   background: var(--color-surface-2);
   border: 1px solid var(--color-border);
@@ -572,7 +572,7 @@ select.input {
 
 /* Hero */
 .hero-text-large {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: clamp(3rem, 8vw, 7rem);
   font-weight: 800;
   line-height: 0.95;
@@ -640,7 +640,7 @@ select.input {
 
 /* Price */
 .price-tag {
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 1.6rem;
   font-weight: 800;
   color: var(--color-navy);
@@ -685,7 +685,7 @@ input[type="range"]::-webkit-slider-thumb {
   align-items: center;
   gap: 0.7rem;
   padding: 0.8rem 1.5rem;
-  font-family: 'Barlow Condensed', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-weight: 600;
   font-size: 1.05rem;
   letter-spacing: 0.06em;
@@ -716,7 +716,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 /* Breadcrumb */
 .breadcrumb {
-  font-family: 'DM Mono', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 0.8rem;
   color: var(--color-muted);
   display: flex;

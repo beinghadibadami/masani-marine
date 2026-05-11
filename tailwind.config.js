@@ -19,9 +19,10 @@ export default {
         navy: 'var(--color-navy)',
       },
       fontFamily: {
-        heading: ['"Barlow Condensed"', 'sans-serif'],
-        mono: ['"DM Mono"', 'monospace'],
-        body: ['Figtree', 'sans-serif'],
+        heading: ['Inter', 'sans-serif'],
+        mono: ['Inter', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
+        sans: ['Inter', 'sans-serif'],
       },
       animation: {
         'sonar': 'sonar 3s ease-out infinite',

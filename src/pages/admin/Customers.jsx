@@ -52,9 +52,9 @@ export default function Customers() {
                          </div>
                        </div>
                      </td>
-                     <td>
-                        <span className={`badge ${c.role === 'admin' ? 'badge-primary' : 'badge-navy'}`}>{c.role}</span>
-                     </td>
+                      <td>
+                         <span className={`badge ${c.role === 'admin' ? 'badge-primary' : 'badge-navy'}`}>{c.role}</span>
+                      </td>
                      <td className="text-[var(--color-muted)]">{new Date(c.created_at).toLocaleDateString()}</td>
                      <td className="font-mono text-xs">{c.phone || '-'}</td>
                    </tr>
