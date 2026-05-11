@@ -126,15 +126,7 @@ export default function Home() {
               <span style={{ color: '#0077A8' }}>Marine</span>
             </motion.h1>
 
-            <motion.h2
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.55 }}
-              className="text-2xl md:text-5xl font-heading font-bold uppercase tracking-widest mb-12"
-              style={{ color: '#0077A8' }}
-            >
-              Global Marine Solutions
-            </motion.h2>
+
 
             <motion.p
               initial={{ opacity: 0 }}
