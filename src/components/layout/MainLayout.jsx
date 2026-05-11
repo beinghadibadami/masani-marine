@@ -13,7 +13,7 @@ export function MainLayout() {
       <main className="flex-1 w-full relative">
         <Outlet />
       </main>
-      <FloatingWhatsApp />
+      {!isAuthPage && <FloatingWhatsApp />}
       {!isAuthPage && <Footer />}
     </div>
   )
