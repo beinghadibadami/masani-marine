@@ -66,7 +66,7 @@ export default function Categories() {
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 border-b border-[var(--color-border)] pb-4 gap-4">
-        <h1 className="font-heading text-3xl font-bold uppercase text-[var(--color-navy)] tracking-wide">
+        <h1 className="font-heading text-xl md:text-3xl font-bold uppercase text-[var(--color-navy)] tracking-wide">
           Categories
         </h1>
         {!isAdding && !editingId && (

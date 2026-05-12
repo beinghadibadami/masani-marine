@@ -4,7 +4,7 @@ import { motion, useInView } from 'framer-motion'
 import {
   Anchor, ArrowRight, Shield, Globe, Headphones, Award,
   ChevronRight, Waves, Compass, Ship, LifeBuoy, Zap,
-  MapPin, Clock, Package
+  MapPin, Clock, Package, CalendarDays, Users
 } from 'lucide-react'
 import { ProductCard } from '../components/ui/ProductCard'
 import { mockProducts } from '../data/mockProducts'
@@ -33,14 +33,41 @@ function useCountUp(target, duration = 2000) {
   return { count, ref }
 }
 
-// ── Stat item ───────────────────────────────────────────────────
+// ── Stat Card ───────────────────────────────────────────────────
+const STAT_ICONS = {
+  'Years in Business': CalendarDays,
+  'Countries Served': Globe,
+  'Products': Package,
+  'Happy Clients': Users,
+}
+
 function StatItem({ value, label, suffix = '' }) {
   const { count, ref } = useCountUp(value)
+  const Icon = STAT_ICONS[label] || Anchor
   return (
-    <div ref={ref} className="text-center">
-      <div className="trust-number" style={{ color: 'var(--color-cyan)' }}>{count}{suffix}</div>
-      <div className="font-mono text-xs text-[var(--color-muted)] tracking-widest uppercase mt-2 font-bold">{label}</div>
-    </div>
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      whileHover={{ translateY: -4, boxShadow: '0 16px 40px rgba(0,119,168,0.18)' }}
+      transition={{ duration: 0.5 }}
+      className="relative bg-white rounded-2xl border border-[var(--color-border)] p-6 flex flex-col items-center gap-3 overflow-hidden group"
+      style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}
+    >
+      {/* Top accent line */}
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[var(--color-primary)] to-[#00AACC] rounded-t-2xl" />
+      {/* Icon */}
+      <div className="w-12 h-12 rounded-xl bg-[rgba(0,119,168,0.1)] border border-[rgba(0,119,168,0.15)] flex items-center justify-center text-[var(--color-primary)] group-hover:bg-[var(--color-primary)] group-hover:text-white transition-all duration-300">
+        <Icon size={22} />
+      </div>
+      {/* Number */}
+      <div className="text-4xl font-extrabold leading-none" style={{ color: '#0077A8', fontFamily: 'Inter, sans-serif', letterSpacing: '-0.03em' }}>
+        {count}{suffix}
+      </div>
+      {/* Label */}
+      <div className="text-xs font-semibold tracking-widest uppercase text-[var(--color-muted)] text-center">{label}</div>
+    </motion.div>
   )
 }
 
@@ -149,9 +176,13 @@ export default function Home() {
       </section>
 
       {/* ── TRUST BAR ─────────────────────────────────────────── */}
-      <section className="bg-white py-12 relative border-b border-[var(--color-border)]">
+      <section className="bg-[var(--color-surface-2)] py-16 relative border-b border-[var(--color-border)]">
         <div className="container">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="text-center mb-10">
+            <div className="section-label justify-center mb-3">By The Numbers</div>
+            <h2 className="font-heading text-2xl md:text-3xl font-bold text-[var(--color-navy)] uppercase tracking-tight">Trusted Across the Globe</h2>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6">
             <StatItem value="16" suffix="+" label="Years in Business" />
             <StatItem value="42" suffix="+" label="Countries Served" />
             <StatItem value="500" suffix="+" label="Products" />

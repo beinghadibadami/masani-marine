@@ -22,10 +22,10 @@ export default function Login() {
     setLoading(true)
     try {
       await login(email, password)
-      toast.success('Successfully logged in')
+      toast.authSuccess('Welcome back! You are now signed in.')
       navigate(redirect)
     } catch (err) {
-      toast.error(err.message || 'Failed to login. Please check credentials.')
+      toast.authError(err.message || 'Failed to sign in. Please check your email and password.')
     } finally {
       setLoading(false)
     }

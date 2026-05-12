@@ -21,36 +21,45 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (formData.password !== formData.confirm) {
-      toast.error('Passwords do not match')
+      toast.authError('Passwords do not match')
       return
     }
     setLoading(true)
     try {
       const data = await register(formData.email, formData.password, formData.fullName)
-      
-      // If user enumeration protection is ON, Supabase returns success but data.user is null for existing accounts
+
+      // Supabase with "user enumeration protection" ON returns success but data.user === null
+      // when the email already exists — we must treat this as an existing-account warning.
       if (!data?.user) {
-        toast.error(
+        toast.authError(
           <div className="flex flex-col gap-1">
-            <span>An account with this email already exists.</span>
-            <Link to="/login" className="underline font-bold">Sign in instead?</Link>
+            <span className="font-semibold">This email is already registered.</span>
+            <Link to="/login" className="underline font-bold text-white/90">Sign in instead →</Link>
           </div>
         )
         return
       }
 
-      toast.success('Success! Please check your email inbox to confirm your account, then sign in.')
+      toast.authSuccess('Account created! Check your email to confirm, then sign in.')
       navigate(`/login?redirect=${encodeURIComponent(redirect)}`)
     } catch (err) {
-      if (err.message?.toLowerCase().includes('already registered') || err.message?.toLowerCase().includes('exists')) {
-        toast.error(
+      const msg = err.message?.toLowerCase() ?? ''
+      const isExistingUser =
+        msg.includes('already registered') ||
+        msg.includes('already exists') ||
+        msg.includes('email already') ||
+        msg.includes('user already') ||
+        msg.includes('duplicate')
+
+      if (isExistingUser) {
+        toast.authError(
           <div className="flex flex-col gap-1">
-            <span>An account with this email already exists.</span>
-            <Link to="/login" className="underline font-bold">Sign in instead?</Link>
+            <span className="font-semibold">This email is already registered.</span>
+            <Link to="/login" className="underline font-bold text-white/90">Sign in instead →</Link>
           </div>
         )
       } else {
-        toast.error(err.message || 'Failed to register.')
+        toast.authError(err.message || 'Registration failed. Please try again.')
       }
     } finally {
       setLoading(false)

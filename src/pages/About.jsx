@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { Anchor, ShieldCheck, Ship, Target, Map, Award, Globe } from 'lucide-react'
+import { Anchor, ShieldCheck, Ship, Target, Map, Award, Globe, CalendarDays, Package, Users } from 'lucide-react'
 
 // Local count-up hook for stats
 function useCountUp(target, duration = 2000) {
@@ -25,15 +25,39 @@ function useCountUp(target, duration = 2000) {
   return { count, ref }
 }
 
-function StatBox({ value, suffix, label }) {
+const STAT_META = [
+  { value: '16', suffix: '+', label: 'Years Experience', icon: CalendarDays },
+  { value: '500', suffix: '+', label: 'Certified Products', icon: Package },
+  { value: '42', suffix: '', label: 'Countries Served', icon: Globe },
+  { value: '1200', suffix: '+', label: 'Vessels Equipped', icon: Users },
+]
+
+function StatBox({ value, suffix, label, icon: Icon }) {
   const { count, ref } = useCountUp(value)
   return (
-    <div ref={ref} className="stat-card text-center items-center">
-      <div className="text-4xl font-heading font-extrabold text-[#00AACC] flex items-center justify-center">
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      whileHover={{ translateY: -4, boxShadow: '0 16px 40px rgba(0,119,168,0.18)' }}
+      transition={{ duration: 0.5 }}
+      className="relative bg-white rounded-2xl border border-[var(--color-border)] p-6 flex flex-col items-center gap-3 overflow-hidden group"
+      style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}
+    >
+      {/* Top accent line */}
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[var(--color-primary)] to-[#00AACC] rounded-t-2xl" />
+      {/* Icon */}
+      <div className="w-12 h-12 rounded-xl bg-[rgba(0,119,168,0.1)] border border-[rgba(0,119,168,0.15)] flex items-center justify-center text-[var(--color-primary)] group-hover:bg-[var(--color-primary)] group-hover:text-white transition-all duration-300">
+        {Icon && <Icon size={22} />}
+      </div>
+      {/* Number */}
+      <div className="text-4xl font-extrabold leading-none" style={{ color: '#0077A8', fontFamily: 'Inter, sans-serif', letterSpacing: '-0.03em' }}>
         {count}{suffix}
       </div>
-      <div className="font-mono text-xs text-[var(--color-muted)] uppercase tracking-wider mt-2">{label}</div>
-    </div>
+      {/* Label */}
+      <div className="text-xs font-semibold tracking-widest uppercase text-[var(--color-muted)] text-center">{label}</div>
+    </motion.div>
   )
 }
 
@@ -94,12 +118,17 @@ export default function About() {
       </section>
 
       {/* Stats */}
-      <section className="relative z-20 mt-20 mb-32 mx-auto container max-w-6xl">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 px-4">
-          <StatBox value="16" suffix="+" label="Years Experience" />
-          <StatBox value="500" suffix="+" label="Certified Products" />
-          <StatBox value="42" suffix="" label="Countries Served" />
-          <StatBox value="1200" suffix="+" label="Vessels Equipped" />
+      <section className="bg-[var(--color-surface-2)] py-16">
+        <div className="container max-w-6xl">
+          <div className="text-center mb-10">
+            <div className="section-label justify-center mb-3">By The Numbers</div>
+            <h2 className="font-heading text-2xl md:text-3xl font-bold text-[var(--color-navy)] uppercase tracking-tight">Our Impact at Sea</h2>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6 px-4">
+            {STAT_META.map((s, i) => (
+              <StatBox key={s.label} value={s.value} suffix={s.suffix} label={s.label} icon={s.icon} />
+            ))}
+          </div>
         </div>
       </section>
 
@@ -120,28 +149,34 @@ export default function About() {
       {/* Certifications & Values */}
       <section className="section bg-[var(--color-surface-2)]">
         <div className="container">
+          <div className="text-center mb-12">
+            <div className="section-label justify-center mb-3">What We Stand For</div>
+            <h2 className="section-title">Our Core Values</h2>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-xl border border-[var(--color-border)]">
-              <ShieldCheck size={36} className="text-[var(--color-primary)] mb-5" />
-              <h3 className="font-heading text-xl font-bold uppercase text-[var(--color-navy)] mb-3">Certified Quality</h3>
-              <p className="text-[var(--color-muted)] text-sm leading-relaxed">
-                An ISO 9001:2015 certified company. All our products meet stringent marine standards including SOLAS, MED, and ABS/DNV type approvals.
-              </p>
-            </div>
-            <div className="bg-white p-8 rounded-xl border border-[var(--color-border)]">
-              <Map size={36} className="text-[var(--color-primary)] mb-5" />
-              <h3 className="font-heading text-xl font-bold uppercase text-[var(--color-navy)] mb-3">Global Logistics</h3>
-              <p className="text-[var(--color-muted)] text-sm leading-relaxed">
-                Strategically located in Dubai, we leverage integrated air and sea freight networks to deliver critical spares to any port, anywhere.
-              </p>
-            </div>
-            <div className="bg-white p-8 rounded-xl border border-[var(--color-border)]">
-              <Target size={36} className="text-[var(--color-primary)] mb-5" />
-              <h3 className="font-heading text-xl font-bold uppercase text-[var(--color-navy)] mb-3">Technical Expertise</h3>
-              <p className="text-[var(--color-muted)] text-sm leading-relaxed">
-                Our team consists of former marine engineers and captains who understand the realities of sea-going operations firsthand.
-              </p>
-            </div>
+            {[
+              { icon: ShieldCheck, title: 'Certified Quality', desc: 'An ISO 9001:2015 certified company. All our products meet stringent marine standards including SOLAS, MED, and ABS/DNV type approvals.' },
+              { icon: Map, title: 'Global Logistics', desc: 'Strategically located in Dubai, we leverage integrated air and sea freight networks to deliver critical spares to any port, anywhere.' },
+              { icon: Target, title: 'Technical Expertise', desc: 'Our team consists of former marine engineers and captains who understand the realities of sea-going operations firsthand.' },
+            ].map(({ icon: Icon, title, desc }, i) => (
+              <motion.div
+                key={title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                whileHover={{ translateY: -4, boxShadow: '0 16px 40px rgba(0,119,168,0.15)' }}
+                className="relative bg-white p-8 rounded-2xl border border-[var(--color-border)] overflow-hidden group"
+                style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}
+              >
+                <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[var(--color-primary)] to-[#00AACC] rounded-t-2xl" />
+                <div className="w-14 h-14 rounded-xl bg-[rgba(0,119,168,0.1)] border border-[rgba(0,119,168,0.15)] flex items-center justify-center text-[var(--color-primary)] group-hover:bg-[var(--color-primary)] group-hover:text-white transition-all duration-300 mb-5">
+                  <Icon size={26} />
+                </div>
+                <h3 className="font-heading text-xl font-bold uppercase text-[var(--color-navy)] mb-3">{title}</h3>
+                <p className="text-[var(--color-muted)] text-sm leading-relaxed">{desc}</p>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>

@@ -27,7 +27,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h1 className="font-heading text-3xl font-bold uppercase text-[var(--color-navy)] mb-6 tracking-wide border-b border-[var(--color-border)] pb-2">
+      <h1 className="font-heading text-xl md:text-3xl font-bold uppercase text-[var(--color-navy)] mb-6 tracking-wide border-b border-[var(--color-border)] pb-2">
         Admin Dashboard
       </h1>
 
@@ -70,7 +70,7 @@ export default function Dashboard() {
           <h2 className="font-heading font-bold text-lg uppercase text-[var(--color-navy)] mb-6 flex items-center justify-between">
             Weekly Sales Overview
           </h2>
-          <div className="h-72 w-full">
+          <div className="h-52 md:h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8EDF4" />

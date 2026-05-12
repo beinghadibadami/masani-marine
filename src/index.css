@@ -52,6 +52,9 @@ a { color: inherit; text-decoration: none; }
 img { max-width: 100%; display: block; }
 button { cursor: pointer; font-family: inherit; }
 
+/* Force Inter on ALL elements — including code/pre/kbd which browsers default to monospace */
+code, pre, kbd, samp, tt { font-family: 'Inter', sans-serif !important; }
+
 /* ─── Typography Utilities ─── */
 .font-heading { font-family: 'Inter', sans-serif; font-weight: 700; }
 .font-mono { font-family: 'Inter', sans-serif; } /* Unified to Inter */
@@ -822,3 +825,68 @@ input[type="range"]::-webkit-slider-thumb {
   letter-spacing: -0.05em;
   text-transform: uppercase;
 }
+
+/* ─── Mobile Responsiveness ─── */
+
+/* Section padding tighter on mobile */
+@media (max-width: 640px) {
+  .section { padding: 3rem 0; }
+  .container { padding: 0 1rem; }
+
+  /* Hero text slightly smaller on very small screens */
+  .hero-text-large {
+    font-size: clamp(2.4rem, 13vw, 4.5rem);
+    line-height: 0.95;
+  }
+
+  /* Stat card: ensure 2-col grid fits, reduce padding */
+  .stat-card { padding: 1rem; }
+
+  /* Admin content: full width with no unnecessary padding */
+  .admin-sidebar { width: 280px; }
+
+  /* Section title smaller on mobile */
+  .section-title {
+    font-size: clamp(1.8rem, 7vw, 3.5rem);
+  }
+
+  /* Ocean CTA section heading */
+  .ocean-bg h2 {
+    font-size: clamp(2rem, 9vw, 4rem) !important;
+  }
+
+  /* Btn full width in stacked mobile views */
+  .btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+/* Admin panel: sticky top bar needs z-index above content */
+@media (max-width: 1024px) {
+  .admin-sidebar {
+    display: none; /* hidden on mobile – drawer is used instead */
+  }
+}
+
+/* Ensure category cards don't overflow on very small screens */
+@media (max-width: 480px) {
+  .category-card {
+    aspect-ratio: 3/2;
+  }
+
+  /* Reduce trust bar / stat section gaps */
+  .grid { gap: 0.75rem; }
+}
+
+/* Smooth scrolling for mobile drawer */
+.admin-mobile-drawer {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent body scroll when mobile drawer is open */
+body.drawer-open {
+  overflow: hidden;
+}
+
