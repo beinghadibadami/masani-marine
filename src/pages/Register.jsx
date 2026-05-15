@@ -28,20 +28,20 @@ export default function Register() {
     try {
       const data = await register(formData.email, formData.password, formData.fullName)
 
-      // Supabase with "user enumeration protection" ON returns success but data.user === null
+      // Supabase with "user enumeration protection" ON returns success but with an empty identities array
       // when the email already exists — we must treat this as an existing-account warning.
-      if (!data?.user) {
+      if (!data?.user || (data?.user?.identities && data.user.identities.length === 0)) {
         toast.authError(
           <div className="flex flex-col gap-1">
             <span className="font-semibold">This email is already registered.</span>
-            <Link to="/login" className="underline font-bold text-white/90">Sign in instead →</Link>
+            <a href="/login" className="underline font-bold text-white/90">Sign in instead →</a>
           </div>
         )
         return
       }
 
-      toast.authSuccess('Account created! Check your email to confirm, then sign in.')
-      navigate(`/login?redirect=${encodeURIComponent(redirect)}`)
+      toast.authSuccess('Account created successfully!')
+      navigate(redirect === '/account' ? '/' : redirect)
     } catch (err) {
       const msg = err.message?.toLowerCase() ?? ''
       const isExistingUser =
@@ -55,7 +55,7 @@ export default function Register() {
         toast.authError(
           <div className="flex flex-col gap-1">
             <span className="font-semibold">This email is already registered.</span>
-            <Link to="/login" className="underline font-bold text-white/90">Sign in instead →</Link>
+            <a href="/login" className="underline font-bold text-white/90">Sign in instead →</a>
           </div>
         )
       } else {

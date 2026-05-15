@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
   LayoutDashboard, Package, Tag, ShoppingBag, Users, Settings, LogOut,
-  Anchor, ChevronRight, Menu, X
+  Anchor, ChevronRight, Menu, X, Store
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 
@@ -70,6 +70,13 @@ function SidebarContent({ onClose, profile, handleLogout }) {
             <p className="text-white/40 text-xs truncate">{profile?.email}</p>
           </div>
         </div>
+        <NavLink
+          to="/"
+          onClick={onClose}
+          className="admin-sidebar-link w-full text-left text-white/70 hover:text-white hover:bg-white/10 mb-1"
+        >
+          <Store size={15} /> View Store
+        </NavLink>
         <button
           onClick={handleLogout}
           className="admin-sidebar-link w-full text-left text-red-400 hover:text-red-300 hover:bg-red-400/10"
@@ -112,33 +119,34 @@ export function AdminLayout() {
       {/* ── Mobile Drawer ─────────────────────────────────────── */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              key="backdrop"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 z-[200] lg:hidden"
-              onClick={() => setMobileMenuOpen(false)}
+          <motion.div
+            key="backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-[200] lg:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            key="drawer"
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 35 }}
+            className="fixed top-0 left-0 bottom-0 w-[280px] z-[300] flex flex-col bg-[var(--color-navy)] lg:hidden shadow-2xl"
+            style={{ overflowY: 'auto' }}
+          >
+            <SidebarContent
+              profile={profile}
+              handleLogout={() => { handleLogout(); setMobileMenuOpen(false) }}
+              onClose={() => setMobileMenuOpen(false)}
             />
-            {/* Drawer panel */}
-            <motion.div
-              key="drawer"
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', stiffness: 300, damping: 35 }}
-              className="fixed top-0 left-0 bottom-0 w-[280px] z-[300] flex flex-col admin-sidebar lg:hidden"
-              style={{ overflowY: 'auto' }}
-            >
-              <SidebarContent
-                profile={profile}
-                handleLogout={() => { handleLogout(); setMobileMenuOpen(false) }}
-                onClose={() => setMobileMenuOpen(false)}
-              />
-            </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -165,9 +173,17 @@ export function AdminLayout() {
             </div>
           </div>
 
-          {/* Right side: admin panel label on mobile */}
-          <div className="flex items-center gap-3">
-            <span className="lg:hidden font-sans text-sm font-bold text-[var(--color-navy)] uppercase">
+          {/* Right side */}
+          <div className="flex items-center gap-3 md:gap-4">
+            <NavLink 
+              to="/" 
+              className="flex items-center gap-1.5 md:gap-2 px-2.5 py-1.5 md:px-3 rounded-lg border border-[var(--color-border)] text-[var(--color-muted)] hover:border-[var(--color-primary)] hover:text-white hover:bg-[var(--color-primary)] transition-all font-sans text-xs md:text-sm font-medium"
+              title="Go to storefront"
+            >
+              <Store size={16} />
+              <span className="hidden sm:inline">View Store</span>
+            </NavLink>
+            <span className="lg:hidden font-sans text-xs sm:text-sm font-bold text-[var(--color-navy)] uppercase">
               Admin Panel
             </span>
             {/* Avatar — desktop */}
