@@ -48,7 +48,7 @@ export function useCart() {
 
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0)
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
-  const shippingTotal = items.reduce((sum, i) => sum + (i.shipping_cost || 0) * i.quantity, 0)
+  const shippingTotal = items.reduce((sum, i) => sum + (i.shipping_cost || 0), 0)
 
   return { items, itemCount, subtotal, shippingTotal, addItem, removeItem, updateQuantity, clearCart }
 }
