@@ -1,14 +1,15 @@
 import { useState } from 'react'
-import { Plus, Edit2, Trash2 } from 'lucide-react'
+import { Plus, Edit2, Trash2, Upload, Loader2 } from 'lucide-react'
 import { useCategories } from '../../hooks/useCategories'
 import { useToast } from '../../components/ui/Toast'
 
 export default function Categories() {
-  const { categories, createCategory, updateCategory, deleteCategory, isLoading } = useCategories()
+  const { categories, createCategory, updateCategory, deleteCategory, uploadCategoryImage, isLoading } = useCategories()
   const toast = useToast()
   
   const [editingId, setEditingId] = useState(null)
   const [isAdding, setIsAdding] = useState(false)
+  const [uploading, setUploading] = useState(false)
   
   const [formData, setFormData] = useState({ name: '', slug: '', description: '', image: '' })
 
@@ -29,6 +30,22 @@ export default function Categories() {
   const handleCancel = () => {
     setEditingId(null)
     setIsAdding(false)
+  }
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    
+    setUploading(true)
+    try {
+      const url = await uploadCategoryImage(formData.slug || 'new', file)
+      setFormData({ ...formData, image: url })
+      toast.success('Image uploaded successfully')
+    } catch(err) {
+      toast.error('Failed to upload image')
+    } finally {
+      setUploading(false)
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -97,8 +114,17 @@ export default function Categories() {
                  <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="input" rows="2" />
               </div>
               <div>
-                 <label className="label">Image URL</label>
-                 <input value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="input font-mono text-sm" />
+                 <label className="label">Image URL or Upload</label>
+                 <div className="flex items-center gap-2">
+                   <input value={formData.image} onChange={e => setFormData({...formData, image: e.target.value})} className="input font-mono text-sm flex-1" placeholder="https://... or upload file" />
+                   <div className="relative flex-shrink-0">
+                     <input type="file" accept="image/*" onChange={handleFileUpload} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" disabled={uploading} />
+                     <button type="button" disabled={uploading} className="btn btn-outline h-10 px-4 flex items-center justify-center gap-2 disabled:opacity-50 text-[var(--color-text)] hover:text-[var(--color-primary)] whitespace-nowrap">
+                       {uploading ? <Loader2 size={16} className="animate-spin text-[var(--color-primary)]" /> : <Upload size={16} />}
+                       {uploading ? 'Uploading...' : 'Upload File'}
+                     </button>
+                   </div>
+                 </div>
               </div>
               <div className="flex gap-3 pt-2">
                  <button type="submit" className="btn btn-primary">Save Category</button>

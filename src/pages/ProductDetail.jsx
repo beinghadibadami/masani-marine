@@ -63,6 +63,7 @@ export default function ProductDetail() {
 
   const images = product.images?.length > 0 ? product.images : [`https://picsum.photos/seed/${product.id}/800/800`]
   const specs = typeof product.specifications === 'string' ? JSON.parse(product.specifications || '{}') : (product.specifications || {})
+  const currentStock = product.stock ?? product.stock_quantity ?? product.stockQuantity ?? 0;
   
   const handleAddToCart = () => {
     addItem(product, quantity)
@@ -123,15 +124,22 @@ export default function ProductDetail() {
                 {product.name}
               </h1>
               
-              <div className="flex items-center gap-4 mb-6">
+              <div className="flex items-center gap-4 mb-3">
                 <span className="price-tag text-4xl">${product.price?.toLocaleString()}</span>
-                {product.stockQuantity > 5 ? (
+                {currentStock > 5 ? (
                   <span className="badge badge-success"><Check size={12} className="mr-1"/> In Stock</span>
-                ) : product.stockQuantity > 0 ? (
-                  <span className="badge badge-warning">Low Stock ({product.stockQuantity})</span>
+                ) : currentStock > 0 ? (
+                  <span className="badge badge-warning">Low Stock ({currentStock})</span>
                 ) : (
                   <span className="badge badge-error">Out of Stock</span>
                 )}
+              </div>
+              
+              <div className="text-sm font-mono text-[var(--color-muted)] mb-6 flex items-center gap-2">
+                <Truck size={14} /> 
+                {product.shipping_cost > 0 
+                  ? `Shipping Cost: $${product.shipping_cost.toLocaleString()}` 
+                  : 'Free Shipping'}
               </div>
 
               <p className="text-[var(--color-muted)] text-base mb-8 leading-relaxed">
@@ -169,7 +177,7 @@ export default function ProductDetail() {
                   {/* Add to Cart */}
                   <button 
                     onClick={handleAddToCart}
-                    disabled={product.stockQuantity === 0}
+                    disabled={currentStock === 0}
                     className="btn btn-primary h-12 flex-1 w-full flex justify-center text-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ShoppingCart size={20} /> Add to Cart
@@ -239,7 +247,9 @@ export default function ProductDetail() {
                  <h3 className="font-heading text-xl uppercase mb-4 text-[var(--color-navy)]">Shipping Information</h3>
                  <p className="text-[var(--color-text)] mb-4">
                    We offer worldwide shipping via our trusted logistics partners (DHL, FedEx, Kuehne+Nagel). 
-                   Shipping costs run on a dimensional weight basis and are calculated at checkout.
+                   {product.shipping_cost > 0 
+                     ? ` The estimated shipping cost for this item is $${product.shipping_cost.toLocaleString()}.`
+                     : ' This item currently qualifies for free standard shipping.'}
                  </p>
                  <ul className="list-disc pl-5 text-[var(--color-muted)] space-y-2">
                    <li>Standard processing time: 1-2 business days.</li>

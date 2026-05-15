@@ -1,6 +1,8 @@
 // TODO: Replace mock data with Supabase queries
+// Note: shipping_cost will be handled as part of productData in create/update.
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import imageCompression from 'browser-image-compression'
 
 export function useProducts(filters = {}) {
   const [products, setProducts] = useState([])
@@ -19,7 +21,10 @@ export function useProducts(filters = {}) {
       let query = supabase
         .from('products')
         .select('*, categories(name, slug)')
-        .eq('is_visible', true)
+        
+      if (!filters.admin) {
+        query = query.eq('is_visible', true)
+      }
 
       if (filters.category) {
         query = query.eq('categories.slug', filters.category)
@@ -87,11 +92,16 @@ export function useProducts(filters = {}) {
   }
 
   async function updateProduct(id, updates) {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('products')
       .update(updates)
       .eq('id', id)
+      .select()
+      
     if (error) throw error
+    if (!data || data.length === 0) {
+      throw new Error("Update failed: 0 rows modified. This is usually caused by Supabase RLS (Row Level Security) blocking the UPDATE operation.")
+    }
     await fetchProducts()
   }
 
@@ -105,11 +115,26 @@ export function useProducts(filters = {}) {
   }
 
   async function uploadProductImage(productId, file) {
-    const path = `products/${productId}/${Date.now()}-${file.name}`
+    const options = {
+      maxSizeMB: 0.5,
+      maxWidthOrHeight: 1200,
+      useWebWorker: true,
+    }
+    const compressedFile = await imageCompression(file, options)
+    
+    // Maintain the original file name extension if it changes internally
+    const extension = file.name.split('.').pop()
+    const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '')
+    const path = `products/${productId}/${Date.now()}-${safeName}`
+    
     const { error } = await supabase.storage
       .from('product-images')
-      .upload(path, file)
-    if (error) throw error
+      .upload(path, compressedFile, { upsert: true })
+      
+    if (error) {
+      console.error("Supabase Storage Error:", error)
+      throw error
+    }
     const { data } = supabase.storage.from('product-images').getPublicUrl(path)
     return data.publicUrl
   }

@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useCartContext } from '../context/CartContext'
 
 export default function Cart() {
-  const { items, itemCount, subtotal, removeItem, updateQuantity, clearCart } = useCartContext()
+  const { items, itemCount, subtotal, shippingTotal, removeItem, updateQuantity, clearCart } = useCartContext()
   const navigate = useNavigate()
 
   if (itemCount === 0) {
@@ -24,8 +24,7 @@ export default function Cart() {
     )
   }
 
-  const shippingEstimate = subtotal > 10000 ? 0 : 150 // Free shipping over 10k
-  const total = subtotal + shippingEstimate
+  const total = subtotal + shippingTotal
 
   return (
     <div className="bg-[var(--color-bg)] min-h-screen py-10">
@@ -112,13 +111,8 @@ export default function Cart() {
                 </div>
                 <div className="flex justify-between text-[var(--color-muted)]">
                   <span>Shipping Estimate</span>
-                  <span className="text-[var(--color-text)]">{shippingEstimate === 0 ? 'Free' : `$${shippingEstimate}`}</span>
+                  <span className="text-[var(--color-text)]">{shippingTotal === 0 ? 'Free' : `$${shippingTotal.toLocaleString()}`}</span>
                 </div>
-                {shippingEstimate > 0 && (
-                  <div className="text-xs text-emerald-600 mt-1">
-                    Add ${(10000 - subtotal).toLocaleString()} more for free shipping!
-                  </div>
-                )}
               </div>
 
               <div className="border-t border-[var(--color-border)] pt-4 mb-6">

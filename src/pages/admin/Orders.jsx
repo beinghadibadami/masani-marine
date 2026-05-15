@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Search, Eye, Filter } from 'lucide-react'
 import { useOrders } from '../../hooks/useOrders'
 import { useToast } from '../../components/ui/Toast'
+import { sendOrderEmail } from '../../lib/email'
 
 export default function Orders() {
   const { orders, isLoading, updateOrderStatus } = useOrders()
@@ -10,6 +11,7 @@ export default function Orders() {
   
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [trackingModal, setTrackingModal] = useState(null) // { order, newStatus }
 
   const filteredOrders = orders.filter(o => 
     (statusFilter === 'all' || o.status === statusFilter) &&
@@ -17,12 +19,33 @@ export default function Orders() {
      o.shipping_address?.name?.toLowerCase().includes(searchTerm.toLowerCase()))
   )
 
-  const handleStatusChange = async (orderId, newStatus) => {
+  const handleStatusChange = async (order, newStatus) => {
+    if (newStatus === 'shipped') {
+      setTrackingModal({ order, newStatus })
+      return
+    }
+
+    await executeStatusUpdate(order, newStatus, null)
+  }
+
+  const executeStatusUpdate = async (order, newStatus, trackingNumber) => {
+
     try {
-      await updateOrderStatus(orderId, newStatus)
-      toast.success('Order status updated')
+      await updateOrderStatus(order.id, newStatus, trackingNumber);
+      
+      // Update order object for email template
+      const updatedOrder = { ...order, status: newStatus, tracking_number: trackingNumber };
+      
+      // Send notification based on new status
+      if (newStatus === 'shipped' || newStatus === 'delivered') {
+        await sendOrderEmail(updatedOrder, newStatus);
+      }
+      
+      toast.success('Order status updated');
     } catch(err) {
-      toast.error('Failed to update status')
+      toast.error('Failed to update status');
+    } finally {
+      setTrackingModal(null)
     }
   }
 
@@ -94,7 +117,7 @@ export default function Orders() {
                     <td>
                       <select 
                         value={o.status}
-                        onChange={(e) => handleStatusChange(o.id, e.target.value)}
+                        onChange={(e) => handleStatusChange(o, e.target.value)}
                         className={`text-xs font-bold uppercase rounded px-2 py-1 border-0 focus:ring-0 cursor-pointer ${
                           o.status === 'delivered' ? 'bg-emerald-100 text-emerald-700' : 
                           o.status === 'shipped' ? 'bg-blue-100 text-blue-700' : 
@@ -106,6 +129,11 @@ export default function Orders() {
                         <option value="shipped">Shipped</option>
                         <option value="delivered">Delivered</option>
                       </select>
+                      {o.tracking_number && (
+                        <div className="text-[10px] font-mono mt-1 text-[var(--color-muted)]">
+                          Track: {o.tracking_number}
+                        </div>
+                      )}
                     </td>
                     <td className="text-right">
                       <Link to={`/account/orders/${o.id}`} className="p-1.5 inline-flex text-blue-500 hover:bg-blue-50 rounded transition-colors" title="View details">
@@ -124,6 +152,45 @@ export default function Orders() {
           </div>
         )}
       </div>
+
+      {/* Tracking Number Modal */}
+      {trackingModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden animate-fade-up">
+            <div className="bg-[var(--color-navy)] text-white px-6 py-4">
+              <h3 className="font-heading font-bold uppercase text-lg">Enter Tracking Number</h3>
+              <p className="text-xs opacity-80 mt-1 font-mono">Order: {trackingModal.order.id.slice(0,8).toUpperCase()}</p>
+            </div>
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault()
+                const fd = new FormData(e.target)
+                const trackingNum = fd.get('trackingNumber').trim()
+                if (!trackingNum) return toast.error('Tracking number is required')
+                executeStatusUpdate(trackingModal.order, trackingModal.newStatus, trackingNum)
+              }} 
+              className="p-6"
+            >
+              <div className="mb-6">
+                <label className="label">Tracking Number (Required)</label>
+                <input 
+                  type="text" 
+                  name="trackingNumber" 
+                  required
+                  autoFocus
+                  defaultValue={trackingModal.order.tracking_number || ''}
+                  className="input font-mono uppercase" 
+                  placeholder="e.g. 1Z9999999999999999"
+                />
+              </div>
+              <div className="flex gap-3 justify-end">
+                <button type="button" onClick={() => setTrackingModal(null)} className="btn btn-outline">Cancel</button>
+                <button type="submit" className="btn btn-primary">Save & Send Email</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

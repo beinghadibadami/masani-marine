@@ -73,8 +73,6 @@ export function useOrders() {
           subtotal,
           total,
           paypal_order_id: paypalOrderId,
-          payment_method: paymentMethod,
-          payment_status: paymentStatus,
           status: 'pending',
         })
         .select()

@@ -1,6 +1,7 @@
 // TODO: Replace mock data with Supabase queries
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import imageCompression from 'browser-image-compression'
 
 export function useCategories() {
   const [categories, setCategories] = useState([])
@@ -47,6 +48,29 @@ export function useCategories() {
     await fetchCategories()
   }
 
+  async function uploadCategoryImage(slug, file) {
+    const options = {
+      maxSizeMB: 0.5,
+      maxWidthOrHeight: 1200,
+      useWebWorker: true,
+    }
+    const compressedFile = await imageCompression(file, options)
+    
+    const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '')
+    const path = `categories/${slug || 'temp'}/${Date.now()}-${safeName}`
+    
+    const { error } = await supabase.storage
+      .from('category-images')
+      .upload(path, compressedFile, { upsert: true })
+      
+    if (error) {
+      console.error("Supabase Storage Error:", error)
+      throw error
+    }
+    const { data } = supabase.storage.from('category-images').getPublicUrl(path)
+    return data.publicUrl
+  }
+
   return {
     categories,
     isLoading,
@@ -54,5 +78,6 @@ export function useCategories() {
     createCategory,
     updateCategory,
     deleteCategory,
+    uploadCategoryImage,
   }
 }

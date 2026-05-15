@@ -5,7 +5,7 @@ import { useProducts } from '../../hooks/useProducts'
 import { useToast } from '../../components/ui/Toast'
 
 export default function Products() {
-  const { products, deleteProduct, updateProduct, isLoading } = useProducts()
+  const { products, deleteProduct, updateProduct, isLoading } = useProducts({ admin: true })
   const toast = useToast()
   
   const [deletingId, setDeletingId] = useState(null)
@@ -84,7 +84,7 @@ export default function Products() {
                     <td className="text-center">
                       <button 
                         onClick={() => toggleVisibility(p)} 
-                        className={`p-1.5 rounded-full inline-flex transition-colors ${p.is_visible ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}
+                        className={`p-1.5 rounded-full inline-flex transition-colors ${p.is_visible ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200' : 'bg-red-100 text-red-600 hover:bg-red-200'}`}
                       >
                         {p.is_visible ? <Eye size={16}/> : <EyeOff size={16}/>}
                       </button>

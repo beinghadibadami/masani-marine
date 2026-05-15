@@ -10,10 +10,11 @@ import { useOrders } from '../hooks/useOrders'
 import { useToast } from '../components/ui/Toast'
 import { PayPalButtons } from '@paypal/react-paypal-js'
 import { supabase } from '../lib/supabase'
+import { sendOrderEmail } from '../lib/email'
 
 export default function Checkout() {
   const { user, profile, updateProfile } = useAuth()
-  const { items, itemCount, subtotal, clearCart } = useCartContext()
+  const { items, itemCount, subtotal, shippingTotal, clearCart } = useCartContext()
   const { createOrder } = useOrders()
   const toast = useToast()
   const navigate = useNavigate()
@@ -40,8 +41,7 @@ export default function Checkout() {
   if (itemCount === 0) return <Navigate to="/cart" replace />
   if (!user) return <Navigate to="/login?redirect=/checkout" replace />
 
-  const shippingEstimate = subtotal > 10000 ? 0 : 150
-  const total = subtotal + shippingEstimate
+  const total = subtotal + shippingTotal
   const PAYPAL_LIMIT = 5000
   const exceedsPaypalLimit = total > PAYPAL_LIMIT
 
@@ -90,6 +90,10 @@ export default function Checkout() {
       
       localStorage.removeItem('masani_shipping_data')
       clearCart()
+
+      // Send email
+      await sendOrderEmail({ ...order, user_email: user.email }, 'placed')
+
       toast.success('Payment successful! Order placed.')
       navigate(`/order-confirmation`, { state: { orderId: order.id } })
 
@@ -115,6 +119,10 @@ export default function Checkout() {
       
       localStorage.removeItem('masani_shipping_data')
       clearCart()
+
+      // Send email
+      await sendOrderEmail({ ...order, user_email: user.email }, 'placed')
+
       toast.success('Order placed! Awaiting bank transfer.')
       navigate(`/order-confirmation`, { state: { orderId: order.id } })
     } catch (err) {
@@ -293,6 +301,7 @@ export default function Checkout() {
                                 </div>
                               ) : (
                                 <PayPalButtons 
+                                  fundingSource="paypal"
                                   style={{ layout: "vertical", shape: "rect", color: "gold" }}
                                   createOrder={(data, actions) => {
                                     return actions.order.create({
@@ -391,7 +400,7 @@ export default function Checkout() {
                 </div>
                 <div className="flex justify-between text-[var(--color-muted)]">
                   <span>Shipping</span>
-                  <span className="text-[var(--color-text)]">{shippingEstimate === 0 ? 'Free' : `$${shippingEstimate}`}</span>
+                  <span className="text-[var(--color-text)]">{shippingTotal === 0 ? 'Free' : `$${shippingTotal.toLocaleString()}`}</span>
                 </div>
               </div>
 

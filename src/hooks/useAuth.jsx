@@ -69,7 +69,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider value={{
       user,
       profile,
-      isAdmin: !!user, // Force admin access for everyone for testing
+      isAdmin: profile?.role === 'admin',
       isLoading,
       login,
       logout,

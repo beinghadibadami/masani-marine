@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon } from 'lucide-react'
+import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Upload, Loader2 } from 'lucide-react'
 import { useProducts } from '../../hooks/useProducts'
 import { useCategories } from '../../hooks/useCategories'
 import { useToast } from '../../components/ui/Toast'
@@ -11,7 +11,7 @@ export default function ProductForm() {
   const navigate = useNavigate()
   const toast = useToast()
   
-  const { createProduct, updateProduct, getProductBySlug } = useProducts()
+  const { createProduct, updateProduct, getProductBySlug, uploadProductImage } = useProducts()
   const { categories } = useCategories()
 
   const [loading, setLoading] = useState(isEdit)
@@ -19,13 +19,14 @@ export default function ProductForm() {
   
   const [formData, setFormData] = useState({
     name: '', slug: '', sku: '', category_id: '',
-    price: 0, stock_quantity: 0, description: '', is_visible: true,
+    price: 0, shipping_cost: 0, stock_quantity: 0, description: '', is_visible: true,
   })
   
   // Dynamic specs dictionary
   const [specs, setSpecs] = useState([{ key: '', value: '' }])
   const [imageUrls, setImageUrls] = useState([''])
   const [prodId, setProdId] = useState(null) // Real DB ID if editing
+  const [uploadingImageIndex, setUploadingImageIndex] = useState(null)
 
   useEffect(() => {
     if (isEdit) {
@@ -34,6 +35,7 @@ export default function ProductForm() {
         setFormData({
           name: data.name, slug: data.slug, sku: data.sku, 
           category_id: data.category_id || '', price: data.price, 
+          shipping_cost: data.shipping_cost || 0,
           stock_quantity: data.stock_quantity || data.stockQuantity || 0,
           description: data.description || '', is_visible: data.is_visible
         })
@@ -80,6 +82,24 @@ export default function ProductForm() {
     newImgs[index] = value
     setImageUrls(newImgs)
   }
+  
+  const handleImageUpload = async (index, e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingImageIndex(index)
+    try {
+      const url = await uploadProductImage(formData.slug || 'new', file)
+      updateImage(index, url)
+      toast.success('Image uploaded successfully')
+    } catch(err) {
+      console.error('Image Upload Catch Error:', err)
+      toast.error(err.message || 'Failed to upload image')
+    } finally {
+      setUploadingImageIndex(null)
+    }
+  }
+
   const addImage = () => setImageUrls([...imageUrls, ''])
   const removeImage = (i) => setImageUrls(imageUrls.filter((_, idx) => idx !== i))
 
@@ -97,7 +117,8 @@ export default function ProductForm() {
       specifications: specObj,
       images: imageUrls.filter(url => url.trim()),
       stock_quantity: parseInt(formData.stock_quantity),
-      price: parseFloat(formData.price)
+      price: parseFloat(formData.price),
+      shipping_cost: parseFloat(formData.shipping_cost || 0)
     }
 
     try {
@@ -161,6 +182,10 @@ export default function ProductForm() {
               <input type="number" step="0.01" name="price" required value={formData.price} onChange={handleChange} className="input font-mono font-bold text-[var(--color-primary)]" />
             </div>
             <div>
+              <label className="label">Shipping Cost (USD)</label>
+              <input type="number" step="0.01" name="shipping_cost" value={formData.shipping_cost} onChange={handleChange} className="input font-mono text-[var(--color-primary)]" />
+            </div>
+            <div>
               <label className="label">Stock Quantity</label>
               <input type="number" name="stock_quantity" value={formData.stock_quantity} onChange={handleChange} className="input" />
             </div>
@@ -205,19 +230,28 @@ export default function ProductForm() {
              <button type="button" onClick={addImage} className="btn btn-outline py-1 px-3 text-xs flex gap-1"><Plus size={14}/> Add Image</button>
           </div>
           <p className="text-xs text-[var(--color-muted)] mb-3">Since cloud storage isn't fully wired, you can paste external image URLs here.</p>
-          <div className="space-y-3">
+           <div className="space-y-3">
              {imageUrls.map((url, i) => (
                 <div key={i} className="flex items-center gap-3">
                    <div className="w-10 h-10 border border-[var(--color-border)] rounded overflow-hidden flex-shrink-0 bg-[var(--color-surface-2)]">
                      {url && <img src={url} className="w-full h-full object-cover"/>}
                    </div>
-                   <input placeholder="https://..." value={url} onChange={e => updateImage(i, e.target.value)} className="input flex-1 font-mono text-sm" />
+                   <input placeholder="https://... or upload file" value={url} onChange={e => updateImage(i, e.target.value)} className="input flex-1 font-mono text-sm" />
+                   
+                   <div className="relative flex-shrink-0">
+                     <input type="file" accept="image/*" onChange={(e) => handleImageUpload(i, e)} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" disabled={uploadingImageIndex !== null} />
+                     <button type="button" disabled={uploadingImageIndex !== null} className="btn btn-outline h-10 px-4 flex items-center justify-center gap-2 disabled:opacity-50 text-[var(--color-text)] hover:text-[var(--color-primary)] whitespace-nowrap">
+                       {uploadingImageIndex === i ? <Loader2 size={16} className="animate-spin text-[var(--color-primary)]" /> : <Upload size={16} />}
+                       {uploadingImageIndex === i ? 'Uploading...' : 'Upload File'}
+                     </button>
+                   </div>
+
                    <button type="button" onClick={() => removeImage(i)} disabled={imageUrls.length===1} className="w-10 flex-shrink-0 flex items-center justify-center text-red-400 hover:text-red-500 disabled:opacity-50">
                      <Trash2 size={16} />
                    </button>
                 </div>
              ))}
-          </div>
+           </div>
         </div>
 
         {/* Submit */}

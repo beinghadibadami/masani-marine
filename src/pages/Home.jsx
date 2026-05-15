@@ -353,29 +353,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── CLIENT LOGOS ────────────────────────────────────────── */}
-      <Section className="section bg-[var(--color-surface-2)]">
-        <div className="container">
-          <div className="text-center mb-10">
-            <div className="section-label justify-center mb-3">
-              Trusted By
-            </div>
-            <h2 className="font-heading text-3xl font-bold text-[var(--color-navy)] uppercase">
-              Global Marine Partners
-            </h2>
-          </div>
-          <div className="flex flex-wrap justify-center gap-8">
-            {['MSC Shipping', 'Maersk Line', 'AMSOL', 'Wilhelmsen', 'Svitzer', 'Stolt Tankers'].map(name => (
-              <div
-                key={name}
-                className="px-6 py-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-muted)] font-mono text-sm font-medium hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-all"
-              >
-                {name}
-              </div>
-            ))}
-          </div>
-        </div>
-      </Section>
     </main>
   )
 }
