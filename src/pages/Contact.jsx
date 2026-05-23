@@ -1,13 +1,43 @@
 import { useState } from 'react'
 import { MapPin, Phone, Mail, Clock, Send, Anchor } from 'lucide-react'
 import { useToast } from '../components/ui/Toast'
+import { validateEmail, validatePhone } from '../lib/validation'
 
 export default function Contact() {
   const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState({})
   const toast = useToast()
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    const fd = new FormData(e.target)
+    const data = Object.fromEntries(fd.entries())
+
+    // Validate
+    const errs = {}
+    if (!data.fullName || data.fullName.trim().length < 3) {
+      errs.fullName = 'Full Name must be at least 3 characters.'
+    }
+    if (!data.email || !validateEmail(data.email)) {
+      errs.email = 'Please enter a valid email address.'
+    }
+    if (data.phone && !validatePhone(data.phone)) {
+      errs.phone = 'Please enter a valid phone number (7-15 digits, +, - or spaces).'
+    }
+    if (!data.subject) {
+      errs.subject = 'Please select a topic.'
+    }
+    if (!data.message || data.message.trim().length < 10) {
+      errs.message = 'Message must be at least 10 characters.'
+    }
+
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs)
+      toast.error('Please correct the errors in the form.')
+      return
+    }
+
+    setErrors({})
     setLoading(true)
     // Simulate form submission
     setTimeout(() => {
@@ -112,49 +142,83 @@ export default function Contact() {
           <div className="lg:col-span-2">
             <div className="bg-white border border-[var(--color-border)] rounded-xl p-8 lg:p-10 shadow-sm">
               <h2 className="font-heading text-2xl font-bold uppercase text-[var(--color-navy)] mb-6">Send Us a Message</h2>
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
-                    <label className="label">Full Name</label>
-                    <input type="text" required className="input" placeholder="Capt. John Doe" />
+                    <label className="label">Full Name *</label>
+                    <input 
+                      type="text" 
+                      name="fullName"
+                      className={`input ${errors.fullName ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`} 
+                      placeholder="Capt. John Doe" 
+                      onChange={() => errors.fullName && setErrors(prev => { const c = { ...prev }; delete c.fullName; return c; })}
+                    />
+                    {errors.fullName && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.fullName}</p>}
                   </div>
                   <div>
                     <label className="label">Company / Vessel (Optional)</label>
-                    <input type="text" className="input" placeholder="Vessel Name or Company" />
+                    <input 
+                      type="text" 
+                      name="company"
+                      className="input border-[var(--color-border)]" 
+                      placeholder="Vessel Name or Company" 
+                    />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
-                    <label className="label">Email Address</label>
-                    <input type="email" required className="input" placeholder="john@example.com" />
+                    <label className="label">Email Address *</label>
+                    <input 
+                      type="email" 
+                      name="email"
+                      className={`input ${errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`} 
+                      placeholder="john@example.com" 
+                      onChange={() => errors.email && setErrors(prev => { const c = { ...prev }; delete c.email; return c; })}
+                    />
+                    {errors.email && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.email}</p>}
                   </div>
                   <div>
-                    <label className="label">Phone Number</label>
-                    <input type="tel" className="input" placeholder="+1 234 567 890" />
+                    <label className="label">Phone Number (Optional)</label>
+                    <input 
+                      type="tel" 
+                      name="phone"
+                      className={`input ${errors.phone ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`} 
+                      placeholder="+1 234 567 890" 
+                      onChange={() => errors.phone && setErrors(prev => { const c = { ...prev }; delete c.phone; return c; })}
+                    />
+                    {errors.phone && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.phone}</p>}
                   </div>
                 </div>
 
                 <div>
-                  <label className="label">Subject / Inquiry Type</label>
-                  <select className="input" required>
+                  <label className="label">Subject / Inquiry Type *</label>
+                  <select 
+                    name="subject"
+                    className={`input ${errors.subject ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`}
+                    defaultValue=""
+                    onChange={() => errors.subject && setErrors(prev => { const c = { ...prev }; delete c.subject; return c; })}
+                  >
                     <option value="">Select Topic...</option>
                     <option value="quote">Request a Quote</option>
                     <option value="technical">Technical Support</option>
                     <option value="shipping">Shipping & Delivery</option>
                     <option value="other">General Inquiry</option>
                   </select>
+                  {errors.subject && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.subject}</p>}
                 </div>
 
                 <div>
-                  <label className="label">Message / Requirements</label>
+                  <label className="label">Message / Requirements *</label>
                   <textarea 
-                    required 
+                    name="message"
                     rows={6}
-                    className="input resize-y" 
+                    className={`input resize-y ${errors.message ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`} 
                     placeholder="Please include part numbers or specific specs if known..."
+                    onChange={() => errors.message && setErrors(prev => { const c = { ...prev }; delete c.message; return c; })}
                   />
+                  {errors.message && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.message}</p>}
                 </div>
 
                 <button type="submit" disabled={loading} className="btn btn-primary btn-lg w-full sm:w-auto">

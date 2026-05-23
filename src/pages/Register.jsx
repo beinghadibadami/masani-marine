@@ -3,11 +3,13 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Anchor, ArrowRight, Eye, EyeOff } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { useToast } from '../components/ui/Toast'
+import { validateEmail } from '../lib/validation'
 
 export default function Register() {
   const [formData, setFormData] = useState({ fullName: '', email: '', password: '', confirm: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState({})
   const { register } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -16,14 +18,43 @@ export default function Register() {
   const params = new URLSearchParams(location.search)
   const redirect = params.get('redirect') || '/account'
 
-  const handleChange = (e) => setFormData(p => ({ ...p, [e.target.name]: e.target.value }))
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(p => ({ ...p, [name]: value }))
+    if (errors[name]) {
+      setErrors(prev => {
+        const copy = { ...prev }
+        delete copy[name]
+        return copy
+      })
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    // Validate
+    const errs = {}
+    if (!formData.fullName || formData.fullName.trim().length < 3) {
+      errs.fullName = 'Full Name must be at least 3 characters.'
+    }
+    if (!formData.email || !validateEmail(formData.email)) {
+      errs.email = 'Please enter a valid email address.'
+    }
+    if (!formData.password || formData.password.length < 6) {
+      errs.password = 'Password must be at least 6 characters.'
+    }
     if (formData.password !== formData.confirm) {
-      toast.authError('Passwords do not match')
+      errs.confirm = 'Passwords do not match.'
+    }
+
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs)
+      toast.error('Please correct the errors in the registration form.')
       return
     }
+
+    setErrors({})
     setLoading(true)
     try {
       const data = await register(formData.email, formData.password, formData.fullName)
@@ -82,52 +113,72 @@ export default function Register() {
            <p className="text-[var(--color-muted)] mt-2">Join Masani Marine for easy ordering</p>
          </div>
 
-         <form onSubmit={handleSubmit} className="space-y-4">
-           <div>
-             <label className="label">Full Name</label>
-             <input 
-               type="text" name="fullName" required value={formData.fullName} onChange={handleChange}
-               className="input border-[var(--color-border)]" placeholder="John Doe"
-             />
-           </div>
-           <div>
-             <label className="label">Email Address</label>
-             <input 
-               type="email" name="email" required value={formData.email} onChange={handleChange}
-               className="input border-[var(--color-border)]" placeholder="email@address.com"
-             />
-           </div>
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div>
-              <label className="label">Password</label>
-              <div className="relative">
-                <input 
-                  type={showPassword ? "text" : "password"} name="password" required minLength="6" value={formData.password} onChange={handleChange}
-                  className="input border-[var(--color-border)] pr-12" placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-muted)] p-1"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
+              <label className="label">Full Name *</label>
+              <input 
+                type="text" 
+                name="fullName" 
+                value={formData.fullName} 
+                onChange={handleChange}
+                className={`input ${errors.fullName ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`} 
+                placeholder="John Doe"
+              />
+              {errors.fullName && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.fullName}</p>}
             </div>
             <div>
-              <label className="label">Confirm Password</label>
-              <div className="relative">
-                <input 
-                  type={showPassword ? "text" : "password"} name="confirm" required minLength="6" value={formData.confirm} onChange={handleChange}
-                  className="input border-[var(--color-border)] pr-12" placeholder="••••••••"
-                />
-              </div>
+              <label className="label">Email Address *</label>
+              <input 
+                type="email" 
+                name="email" 
+                value={formData.email} 
+                onChange={handleChange}
+                className={`input ${errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`} 
+                placeholder="email@address.com"
+              />
+              {errors.email && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.email}</p>}
             </div>
-           
-           <button type="submit" disabled={loading} className="btn btn-primary w-full justify-center mt-4">
-             {loading ? <div className="loader" style={{ width:20, height:20, borderWidth:2 }}/> : 'Create Account'}
-             {!loading && <ArrowRight size={18}/>}
-           </button>
-         </form>
+             <div>
+               <label className="label">Password *</label>
+               <div className="relative">
+                 <input 
+                   type={showPassword ? "text" : "password"} 
+                   name="password" 
+                   value={formData.password} 
+                   onChange={handleChange}
+                   className={`input ${errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'} pr-12`} 
+                   placeholder="••••••••"
+                 />
+                 <button
+                   type="button"
+                   onClick={() => setShowPassword(!showPassword)}
+                   className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-muted)] p-1"
+                 >
+                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                 </button>
+               </div>
+               {errors.password && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.password}</p>}
+             </div>
+             <div>
+               <label className="label">Confirm Password *</label>
+               <div className="relative">
+                 <input 
+                   type={showPassword ? "text" : "password"} 
+                   name="confirm" 
+                   value={formData.confirm} 
+                   onChange={handleChange}
+                   className={`input ${errors.confirm ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'} pr-12`} 
+                   placeholder="••••••••"
+                 />
+               </div>
+               {errors.confirm && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.confirm}</p>}
+             </div>
+            
+            <button type="submit" disabled={loading} className="btn btn-primary w-full justify-center mt-4">
+              {loading ? <div className="loader" style={{ width:20, height:20, borderWidth:2 }}/> : 'Create Account'}
+              {!loading && <ArrowRight size={18}/>}
+            </button>
+          </form>
 
          <div className="text-center mt-6 pt-6 border-t border-[var(--color-border)]">
            <p className="text-[var(--color-muted)] text-sm">

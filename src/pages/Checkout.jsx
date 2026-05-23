@@ -11,6 +11,7 @@ import { useToast } from '../components/ui/Toast'
 import { PayPalButtons } from '@paypal/react-paypal-js'
 import { supabase } from '../lib/supabase'
 import { sendOrderEmail } from '../lib/email'
+import { validateName, validateZipCode, validateState } from '../lib/validation'
 
 export default function Checkout() {
   const { user, profile, updateProfile } = useAuth()
@@ -30,6 +31,7 @@ export default function Checkout() {
     return totalCalc > 5000 ? 'bank_transfer' : 'paypal'
   })
   const [isProcessing, setIsProcessing] = useState(false)
+  const [errors, setErrors] = useState({})
 
   // Persist shipping data
   useEffect(() => {
@@ -49,7 +51,51 @@ export default function Checkout() {
     e.preventDefault()
     const fd = new FormData(e.target)
     const data = Object.fromEntries(fd.entries())
+    
+    // Validate fields
+    const errs = {}
+    if (!data.name || !validateName(data.name)) {
+      errs.name = 'Please enter both first and last name.'
+    }
+    if (!data.line1 || data.line1.trim().length < 5) {
+      errs.line1 = 'Address line 1 must be at least 5 characters.'
+    }
+    const cityTrimmed = (data.city || '').trim()
+    if (!cityTrimmed || cityTrimmed.length < 2 || !/^[A-Za-z\s-]+$/.test(cityTrimmed)) {
+      errs.city = 'City/Port name must be at least 2 characters (letters, spaces, and hyphens only).'
+    }
+    if (!data.state || !validateState(data.state, data.country)) {
+      errs.state = data.country === 'US' 
+        ? 'US States must be 2 letters (e.g., FL).' 
+        : 'State/Province must be at least 2 characters.'
+    }
+    if (!data.zip || !validateZipCode(data.zip, data.country)) {
+      if (data.country === 'US') {
+        errs.zip = 'Invalid ZIP format (e.g., 33101 or 33101-1234).'
+      } else if (data.country === 'SG') {
+        errs.zip = 'Singapore postal codes must be exactly 6 digits.'
+      } else if (data.country === 'NL') {
+        errs.zip = 'Dutch postal codes must be 4 digits followed by 2 letters (e.g., 1234 AB).'
+      } else if (data.country === 'GB') {
+        errs.zip = 'Invalid UK postal code format.'
+      } else {
+        errs.zip = 'Postal code must be 3 to 10 alphanumeric characters.'
+      }
+    }
+
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs)
+      toast.error('Please correct the errors in the shipping form.')
+      return
+    }
+
+    // Capitalize US state code
+    if (data.country === 'US' && data.state) {
+      data.state = data.state.toUpperCase().trim()
+    }
+
     setShippingData(data)
+    setErrors({})
     
     try {
       if (updateProfile) {
@@ -174,46 +220,96 @@ export default function Checkout() {
               
               <div className="p-6">
                 {step === 1 && (
-                  <form onSubmit={handleShippingSubmit} className="space-y-4">
+                  <form onSubmit={handleShippingSubmit} className="space-y-4" noValidate>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="label">Full Name</label>
-                        <input name="name" required className="input" placeholder="Capt. John Doe" defaultValue={profile?.shipping_address?.name || user?.user_metadata?.full_name || ''} />
+                        <label className="label">Full Name *</label>
+                        <input 
+                          name="name" 
+                          className={`input ${errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`} 
+                          placeholder="Capt. John Doe" 
+                          defaultValue={profile?.shipping_address?.name || user?.user_metadata?.full_name || ''} 
+                          onChange={() => errors.name && setErrors(prev => { const c = { ...prev }; delete c.name; return c; })}
+                        />
+                        {errors.name && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.name}</p>}
                       </div>
                       <div>
                         <label className="label">Company / Vessel Name (Optional)</label>
-                        <input name="company" className="input" placeholder="Seafarer Logistics" defaultValue={profile?.shipping_address?.company || ''} />
+                        <input 
+                          name="company" 
+                          className="input border-[var(--color-border)]" 
+                          placeholder="Seafarer Logistics" 
+                          defaultValue={profile?.shipping_address?.company || ''} 
+                        />
                       </div>
                     </div>
                     
                     <div>
-                      <label className="label">Address Line 1</label>
-                      <input name="line1" required className="input" placeholder="Pier 4, Main Harbor" defaultValue={profile?.shipping_address?.line1 || ''} />
+                      <label className="label">Address Line 1 *</label>
+                      <input 
+                        name="line1" 
+                        className={`input ${errors.line1 ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`} 
+                        placeholder="Pier 4, Main Harbor" 
+                        defaultValue={profile?.shipping_address?.line1 || ''} 
+                        onChange={() => errors.line1 && setErrors(prev => { const c = { ...prev }; delete c.line1; return c; })}
+                      />
+                      {errors.line1 && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.line1}</p>}
                     </div>
                     
                     <div>
                       <label className="label">Address Line 2 (Optional)</label>
-                      <input name="line2" className="input" placeholder="Suite, Unit, etc." defaultValue={profile?.shipping_address?.line2 || ''} />
+                      <input 
+                        name="line2" 
+                        className="input border-[var(--color-border)]" 
+                        placeholder="Suite, Unit, etc." 
+                        defaultValue={profile?.shipping_address?.line2 || ''} 
+                      />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div>
-                        <label className="label">City / Port</label>
-                        <input name="city" required className="input" placeholder="Miami" defaultValue={profile?.shipping_address?.city || ''} />
+                        <label className="label">City / Port *</label>
+                        <input 
+                          name="city" 
+                          className={`input ${errors.city ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`} 
+                          placeholder="Miami" 
+                          defaultValue={profile?.shipping_address?.city || ''} 
+                          onChange={() => errors.city && setErrors(prev => { const c = { ...prev }; delete c.city; return c; })}
+                        />
+                        {errors.city && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.city}</p>}
                       </div>
                       <div>
-                        <label className="label">State / Province</label>
-                        <input name="state" required className="input" placeholder="FL" defaultValue={profile?.shipping_address?.state || ''} />
+                        <label className="label">State / Province *</label>
+                        <input 
+                          name="state" 
+                          className={`input ${errors.state ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`} 
+                          placeholder="FL" 
+                          defaultValue={profile?.shipping_address?.state || ''} 
+                          onChange={() => errors.state && setErrors(prev => { const c = { ...prev }; delete c.state; return c; })}
+                        />
+                        {errors.state && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.state}</p>}
                       </div>
                       <div>
-                        <label className="label">ZIP / Postal Code</label>
-                        <input name="zip" required className="input" placeholder="33101" defaultValue={profile?.shipping_address?.zip || ''} />
+                        <label className="label">ZIP / Postal Code *</label>
+                        <input 
+                          name="zip" 
+                          className={`input ${errors.zip ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`} 
+                          placeholder="33101" 
+                          defaultValue={profile?.shipping_address?.zip || ''} 
+                          onChange={() => errors.zip && setErrors(prev => { const c = { ...prev }; delete c.zip; return c; })}
+                        />
+                        {errors.zip && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.zip}</p>}
                       </div>
                     </div>
 
                     <div>
-                      <label className="label">Country</label>
-                      <select name="country" required className="input" defaultValue={profile?.shipping_address?.country || 'US'}>
+                      <label className="label">Country *</label>
+                      <select 
+                        name="country" 
+                        className="input border-[var(--color-border)]" 
+                        defaultValue={profile?.shipping_address?.country || 'US'}
+                        onChange={() => setErrors({})} // Clear errors if country changes
+                      >
                         <option value="US">United States</option>
                         <option value="GB">United Kingdom</option>
                         <option value="AE">United Arab Emirates</option>

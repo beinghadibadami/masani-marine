@@ -4,6 +4,7 @@ import { ArrowLeft, Save, Plus, Trash2, Image as ImageIcon, Upload, Loader2 } fr
 import { useProducts } from '../../hooks/useProducts'
 import { useCategories } from '../../hooks/useCategories'
 import { useToast } from '../../components/ui/Toast'
+import { validateSku, validateSlug } from '../../lib/validation'
 
 export default function ProductForm() {
   const { id } = useParams()
@@ -16,6 +17,7 @@ export default function ProductForm() {
 
   const [loading, setLoading] = useState(isEdit)
   const [saving, setSaving] = useState(false)
+  const [errors, setErrors] = useState({})
   
   const [formData, setFormData] = useState({
     name: '', slug: '', sku: '', category_id: '',
@@ -61,10 +63,24 @@ export default function ProductForm() {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
     setFormData(prev => {
-      const updates = { ...prev, [name]: type === 'checkbox' ? checked : value }
+      let finalValue = type === 'checkbox' ? checked : value
+      if (name === 'sku') {
+        finalValue = String(finalValue).toUpperCase().trim()
+      }
+      
+      const updates = { ...prev, [name]: finalValue }
       if (name === 'name' && !isEdit) updates.slug = generateSlug(value)
       return updates
     })
+
+    // Clear field error on change
+    if (errors[name]) {
+      setErrors(prev => {
+        const copy = { ...prev }
+        delete copy[name]
+        return copy
+      })
+    }
   }
 
   // Specs handling
@@ -105,6 +121,38 @@ export default function ProductForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    // Validate
+    const errs = {}
+    if (!formData.name || formData.name.trim().length < 3) {
+      errs.name = 'Product name must be at least 3 characters.'
+    }
+    if (!formData.sku || !validateSku(formData.sku)) {
+      errs.sku = 'SKU must be alphanumeric/hyphens (min 4 characters).'
+    }
+    if (!formData.slug || !validateSlug(formData.slug)) {
+      errs.slug = 'Slug must be valid URL-safe lowercase (e.g. garmin-fantom-54).'
+    }
+    const priceVal = parseFloat(formData.price)
+    if (isNaN(priceVal) || priceVal <= 0) {
+      errs.price = 'Price must be greater than 0.'
+    }
+    const shippingVal = parseFloat(formData.shipping_cost || 0)
+    if (isNaN(shippingVal) || shippingVal < 0) {
+      errs.shipping_cost = 'Shipping cost must be greater than or equal to 0.'
+    }
+    const stockVal = parseInt(formData.stock_quantity || 0)
+    if (isNaN(stockVal) || stockVal < 0) {
+      errs.stock_quantity = 'Stock quantity must be greater than or equal to 0.'
+    }
+
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs)
+      toast.error('Please correct the errors in the product form.')
+      return
+    }
+
+    setErrors({})
     setSaving(true)
     
     // Format specs 
@@ -160,34 +208,75 @@ export default function ProductForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
             <div>
               <label className="label">Product Name *</label>
-              <input name="name" required value={formData.name} onChange={handleChange} className="input" />
+              <input 
+                name="name" 
+                value={formData.name} 
+                onChange={handleChange} 
+                className={`input ${errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`}
+              />
+              {errors.name && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.name}</p>}
             </div>
             <div>
               <label className="label">Category</label>
-              <select name="category_id" value={formData.category_id} onChange={handleChange} className="input">
+              <select name="category_id" value={formData.category_id} onChange={handleChange} className="input border-[var(--color-border)]">
                 <option value="">Select Category...</option>
                 {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div>
               <label className="label">SKU *</label>
-              <input name="sku" required value={formData.sku} onChange={handleChange} className="input font-mono uppercase" />
+              <input 
+                name="sku" 
+                value={formData.sku} 
+                onChange={handleChange} 
+                className={`input font-mono uppercase ${errors.sku ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`}
+              />
+              {errors.sku && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.sku}</p>}
             </div>
             <div>
               <label className="label">URL Slug *</label>
-              <input name="slug" required value={formData.slug} onChange={handleChange} className="input text-sm text-[var(--color-muted)]" />
+              <input 
+                name="slug" 
+                value={formData.slug} 
+                onChange={handleChange} 
+                className={`input text-sm ${errors.slug ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`}
+              />
+              {errors.slug && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.slug}</p>}
             </div>
             <div>
               <label className="label">Price (USD) *</label>
-              <input type="number" step="0.01" name="price" required value={formData.price} onChange={handleChange} className="input font-mono font-bold text-[var(--color-primary)]" />
+              <input 
+                type="number" 
+                step="0.01" 
+                name="price" 
+                value={formData.price} 
+                onChange={handleChange} 
+                className={`input font-mono font-bold ${errors.price ? 'border-red-500 focus:border-red-500 focus:ring-red-100 text-red-500' : 'border-[var(--color-border)] text-[var(--color-primary)]'}`}
+              />
+              {errors.price && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.price}</p>}
             </div>
             <div>
               <label className="label">Shipping Cost (USD)</label>
-              <input type="number" step="0.01" name="shipping_cost" value={formData.shipping_cost} onChange={handleChange} className="input font-mono text-[var(--color-primary)]" />
+              <input 
+                type="number" 
+                step="0.01" 
+                name="shipping_cost" 
+                value={formData.shipping_cost} 
+                onChange={handleChange} 
+                className={`input font-mono ${errors.shipping_cost ? 'border-red-500 focus:border-red-500 focus:ring-red-100 text-red-500' : 'border-[var(--color-border)] text-[var(--color-primary)]'}`}
+              />
+              {errors.shipping_cost && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.shipping_cost}</p>}
             </div>
             <div>
               <label className="label">Stock Quantity</label>
-              <input type="number" name="stock_quantity" value={formData.stock_quantity} onChange={handleChange} className="input" />
+              <input 
+                type="number" 
+                name="stock_quantity" 
+                value={formData.stock_quantity} 
+                onChange={handleChange} 
+                className={`input ${errors.stock_quantity ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`}
+              />
+              {errors.stock_quantity && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.stock_quantity}</p>}
             </div>
           </div>
 
