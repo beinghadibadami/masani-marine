@@ -9,6 +9,8 @@ import {
 import { ProductCard } from '../components/ui/ProductCard'
 import { mockProducts } from '../data/mockProducts'
 import { mockCategories } from '../data/mockCategories'
+import { useProducts } from '../hooks/useProducts'
+import { useCategories } from '../hooks/useCategories'
 
 // ── Animated count-up hook ───────────────────────────────────────
 function useCountUp(target, duration = 2000) {
@@ -89,9 +91,11 @@ function Section({ children, className = '', delay = 0 }) {
 }
 
 export default function Home() {
+  const { products } = useProducts()
+  const { categories } = useCategories()
 
-
-  const featuredProducts = mockProducts.slice(0, 6)
+  const featuredProducts = products && products.length > 0 ? products.slice(0, 6) : mockProducts.slice(0, 6)
+  const displayCategories = categories && categories.length > 0 ? categories : mockCategories
 
   return (
     <main>
@@ -205,7 +209,7 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mockCategories.map((cat, i) => (
+            {displayCategories.map((cat, i) => (
               <motion.div
                 key={cat.id}
                 initial={{ opacity: 0, y: 30 }}

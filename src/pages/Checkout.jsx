@@ -12,6 +12,8 @@ import { PayPalButtons } from '@paypal/react-paypal-js'
 import { supabase } from '../lib/supabase'
 import { sendOrderEmail } from '../lib/email'
 import { validateName, validateZipCode, validateState } from '../lib/validation'
+import CountrySelect from '../components/ui/CountrySelect'
+import { usePostalLookup } from '../hooks/usePostalLookup'
 
 export default function Checkout() {
   const { user, profile, updateProfile } = useAuth()
@@ -32,6 +34,24 @@ export default function Checkout() {
   })
   const [isProcessing, setIsProcessing] = useState(false)
   const [errors, setErrors] = useState({})
+
+  // Controlled fields for auto-fill
+  const savedAddr = profile?.shipping_address || shippingData || {}
+  const [zipValue, setZipValue] = useState(savedAddr.zip || '')
+  const [cityValue, setCityValue] = useState(savedAddr.city || '')
+  const [stateValue, setStateValue] = useState(savedAddr.state || '')
+  const [countryValue, setCountryValue] = useState(savedAddr.country || 'US')
+
+  // Auto-fill city & state when postal code is entered
+  const { isLooking, lookupError } = usePostalLookup({
+    zip: zipValue,
+    country: countryValue,
+    onResult: ({ city, state }) => {
+      setCityValue(city)
+      setStateValue(state)
+      setErrors(prev => { const c = { ...prev }; delete c.city; delete c.state; return c })
+    }
+  })
 
   // Persist shipping data
   useEffect(() => {
@@ -266,15 +286,46 @@ export default function Checkout() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {/* ZIP / Postal Code — first so auto-fill can populate city & state */}
+                    <div>
+                      <label className="label">ZIP / Postal Code *</label>
+                      <div className="relative">
+                        <input
+                          name="zip"
+                          value={zipValue}
+                          className={`input pr-8 ${errors.zip ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`}
+                          placeholder="33101"
+                          onChange={e => {
+                            setZipValue(e.target.value)
+                            if (errors.zip) setErrors(prev => { const c = { ...prev }; delete c.zip; return c })
+                          }}
+                        />
+                        {isLooking && (
+                          <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-[var(--color-primary)]" />
+                        )}
+                      </div>
+                      {errors.zip && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.zip}</p>}
+                      {lookupError && !errors.zip && (
+                        <p className="text-amber-600 text-xs mt-1 font-semibold">{lookupError}</p>
+                      )}
+                      {!lookupError && !isLooking && cityValue && !errors.zip && (
+                        <p className="text-emerald-600 text-xs mt-1 font-semibold">✓ City & State auto-filled</p>
+                      )}
+                    </div>
+
+                    {/* City & State — auto-filled from postal lookup */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="label">City / Port *</label>
                         <input
                           name="city"
+                          value={cityValue}
                           className={`input ${errors.city ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`}
                           placeholder="Miami"
-                          defaultValue={profile?.shipping_address?.city || ''}
-                          onChange={() => errors.city && setErrors(prev => { const c = { ...prev }; delete c.city; return c; })}
+                          onChange={e => {
+                            setCityValue(e.target.value)
+                            if (errors.city) setErrors(prev => { const c = { ...prev }; delete c.city; return c })
+                          }}
                         />
                         {errors.city && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.city}</p>}
                       </div>
@@ -282,41 +333,28 @@ export default function Checkout() {
                         <label className="label">State / Province *</label>
                         <input
                           name="state"
+                          value={stateValue}
                           className={`input ${errors.state ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`}
                           placeholder="FL"
-                          defaultValue={profile?.shipping_address?.state || ''}
-                          onChange={() => errors.state && setErrors(prev => { const c = { ...prev }; delete c.state; return c; })}
+                          onChange={e => {
+                            setStateValue(e.target.value)
+                            if (errors.state) setErrors(prev => { const c = { ...prev }; delete c.state; return c })
+                          }}
                         />
                         {errors.state && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.state}</p>}
-                      </div>
-                      <div>
-                        <label className="label">ZIP / Postal Code *</label>
-                        <input
-                          name="zip"
-                          className={`input ${errors.zip ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`}
-                          placeholder="33101"
-                          defaultValue={profile?.shipping_address?.zip || ''}
-                          onChange={() => errors.zip && setErrors(prev => { const c = { ...prev }; delete c.zip; return c; })}
-                        />
-                        {errors.zip && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.zip}</p>}
                       </div>
                     </div>
 
                     <div>
                       <label className="label">Country *</label>
-                      <select
+                      <CountrySelect
                         name="country"
-                        className="input border-[var(--color-border)]"
-                        defaultValue={profile?.shipping_address?.country || 'US'}
-                        onChange={() => setErrors({})} // Clear errors if country changes
-                      >
-                        <option value="US">United States</option>
-                        <option value="GB">United Kingdom</option>
-                        <option value="AE">United Arab Emirates</option>
-                        <option value="SG">Singapore</option>
-                        <option value="NL">Netherlands</option>
-                        <option value="IN">India</option>
-                      </select>
+                        value={countryValue}
+                        onChange={e => {
+                          setCountryValue(e.target.value)
+                          setErrors({})
+                        }}
+                      />
                     </div>
 
                     <div className="pt-4 border-t border-[var(--color-border)] mt-6">

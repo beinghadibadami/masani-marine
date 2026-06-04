@@ -6,24 +6,58 @@ import { useOrders } from '../../hooks/useOrders'
 import { useProducts } from '../../hooks/useProducts'
 
 export default function Dashboard() {
-  const { orders } = useOrders()
-  const { products } = useProducts()
+  const { orders, isLoading: isLoadingOrders } = useOrders()
+  const { products, isLoading: isLoadingProducts } = useProducts()
+
+  if (isLoadingOrders || isLoadingProducts) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px] flex-col gap-3">
+        <div className="w-10 h-10 border-4 border-[var(--color-primary-light)] border-t-[var(--color-primary)] rounded-full animate-spin" />
+        <p className="text-sm font-mono uppercase text-[var(--color-muted)]">Loading dashboard data...</p>
+      </div>
+    )
+  }
   
   // Quick stats calculations
   const totalRevenue = orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0)
   const pendingOrdersCount = orders.filter(o => o.status === 'pending').length
-  const lowStockCount = products.filter(p => p.stockQuantity <= 3).length
+  const lowStockCount = products.filter(p => (p.stock !== undefined ? p.stock : 0) <= 3).length
 
-  // Mock chart data (in real app, group by date from orders)
-  const chartData = [
-    { name: 'Mon', sales: 4000 },
-    { name: 'Tue', sales: 3000 },
-    { name: 'Wed', sales: 2000 },
-    { name: 'Thu', sales: 6780 },
-    { name: 'Fri', sales: 1890 },
-    { name: 'Sat', sales: 2390 },
-    { name: 'Sun', sales: 3490 },
-  ]
+  // Dynamically calculate weekly sales overview (last 7 days ending today)
+  const getWeeklySales = (ordersList) => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    const last7Days = []
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      d.setHours(0, 0, 0, 0)
+      last7Days.push({
+        dateString: d.toDateString(),
+        dayName: days[d.getDay()],
+        sales: 0
+      })
+    }
+
+    ordersList.forEach(order => {
+      if (!order.created_at) return
+      const orderDate = new Date(order.created_at)
+      orderDate.setHours(0, 0, 0, 0)
+      const orderDateStr = orderDate.toDateString()
+
+      const dayObj = last7Days.find(day => day.dateString === orderDateStr)
+      if (dayObj) {
+        dayObj.sales += Number(order.total) || 0
+      }
+    })
+
+    return last7Days.map(day => ({
+      name: day.dayName,
+      sales: day.sales
+    }))
+  }
+
+  const chartData = getWeeklySales(orders)
 
   return (
     <div>

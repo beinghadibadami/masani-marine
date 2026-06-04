@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../components/ui/Toast'
 import { validateName, validateZipCode, validateState } from '../../lib/validation'
+import CountrySelect from '../../components/ui/CountrySelect'
+import { usePostalLookup } from '../../hooks/usePostalLookup'
+import { Loader2 } from 'lucide-react'
 
 export default function Addresses() {
   const { profile, updateProfile } = useAuth()
@@ -10,6 +13,16 @@ export default function Addresses() {
   const [errors, setErrors] = useState({})
   const [formData, setFormData] = useState({
     name: '', company: '', line1: '', line2: '', city: '', state: '', zip: '', country: 'US'
+  })
+
+  // Auto-fill city & state when postal code + country changes
+  const { isLooking, lookupError } = usePostalLookup({
+    zip: formData.zip,
+    country: formData.country,
+    onResult: ({ city, state }) => {
+      setFormData(prev => ({ ...prev, city, state }))
+      setErrors(prev => { const c = { ...prev }; delete c.city; delete c.state; return c })
+    }
   })
 
   useEffect(() => {
@@ -159,7 +172,30 @@ export default function Addresses() {
             />
           </div>
  
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+           <div>
+            <label className="label">ZIP / Postal Code *</label>
+            <div className="relative">
+              <input 
+                name="zip" 
+                className={`input pr-8 ${errors.zip ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`} 
+                value={formData.zip || ''} 
+                onChange={handleChange} 
+                placeholder="33101"
+              />
+              {isLooking && (
+                <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-[var(--color-primary)]" />
+              )}
+            </div>
+            {errors.zip && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.zip}</p>}
+            {lookupError && !errors.zip && (
+              <p className="text-amber-600 text-xs mt-1 font-semibold">{lookupError}</p>
+            )}
+            {!lookupError && !isLooking && formData.city && !errors.zip && (
+              <p className="text-emerald-600 text-xs mt-1 font-semibold">✓ City & State auto-filled</p>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="label">City / Port *</label>
               <input 
@@ -182,33 +218,15 @@ export default function Addresses() {
               />
               {errors.state && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.state}</p>}
             </div>
-            <div>
-              <label className="label">ZIP / Postal Code *</label>
-              <input 
-                name="zip" 
-                className={`input ${errors.zip ? 'border-red-500 focus:border-red-500 focus:ring-red-100' : 'border-[var(--color-border)]'}`} 
-                value={formData.zip || ''} 
-                onChange={handleChange} 
-                placeholder="33101"
-              />
-              {errors.zip && <p className="text-red-500 text-xs mt-1 font-semibold">{errors.zip}</p>}
-            </div>
           </div>
  
           <div>
             <label className="label">Country *</label>
-            <select 
+            <CountrySelect 
               name="country" 
-              className="input border-[var(--color-border)]" 
               value={formData.country || 'US'} 
               onChange={handleChange}
-            >
-              <option value="US">United States</option>
-              <option value="GB">United Kingdom</option>
-              <option value="AE">United Arab Emirates</option>
-              <option value="SG">Singapore</option>
-              <option value="NL">Netherlands</option>
-            </select>
+            />
           </div>
  
           <div className="pt-4 mt-2">
