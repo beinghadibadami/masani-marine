@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { DollarSign, ShoppingBag, PackageOpen, AlertCircle, ArrowRight } from 'lucide-react'
+import { DollarSign, ShoppingBag, PackageOpen, AlertCircle, ArrowRight, Inbox } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useOrders } from '../../hooks/useOrders'
 import { useProducts } from '../../hooks/useProducts'
@@ -127,21 +127,31 @@ export default function Dashboard() {
             <Link to="/admin/orders" className="text-xs font-mono uppercase text-[var(--color-primary)] hover:underline flex items-center gap-1">View All <ArrowRight size={12}/></Link>
           </div>
           <div className="flex-1 overflow-y-auto">
-            {orders.slice(0,5).map(o => (
-              <div key={o.id} className="p-4 border-b border-[var(--color-border)] hover:bg-[var(--color-surface-2)] transition-colors">
-                <div className="flex justify-between items-start mb-1">
-                  <span className="font-mono text-sm font-bold text-[var(--color-navy)]">{o.id.slice(0,8).toUpperCase()}</span>
-                  <span className={`badge ${
-                     o.status === 'delivered' ? 'badge-success' : 
-                     o.status === 'pending' ? 'badge-warning' : 'badge-info'
-                   }`} style={{ zoom: 0.8 }}>{o.status}</span>
+            {orders.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                <div className="w-14 h-14 rounded-full bg-[var(--color-surface-2)] flex items-center justify-center mb-4">
+                  <Inbox size={24} className="text-[var(--color-muted)]" />
                 </div>
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-xs text-[var(--color-muted)]">{new Date(o.created_at).toLocaleDateString()}</span>
-                  <span className="text-sm font-bold text-[var(--color-primary)]">${o.total?.toLocaleString()}</span>
-                </div>
+                <p className="font-heading font-bold text-[var(--color-navy)] mb-1">No orders yet</p>
+                <p className="text-xs text-[var(--color-muted)]">Orders will appear here once customers place them.</p>
               </div>
-            ))}
+            ) : (
+              orders.slice(0,5).map(o => (
+                <div key={o.id} className="p-4 border-b border-[var(--color-border)] hover:bg-[var(--color-surface-2)] transition-colors">
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="font-mono text-sm font-bold text-[var(--color-navy)]">{o.id.slice(0,8).toUpperCase()}</span>
+                    <span className={`badge ${
+                       o.status === 'delivered' ? 'badge-success' : 
+                       o.status === 'pending' ? 'badge-warning' : 'badge-info'
+                     }`} style={{ zoom: 0.8 }}>{o.status}</span>
+                  </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-xs text-[var(--color-muted)]">{new Date(o.created_at).toLocaleDateString()}</span>
+                    <span className="text-sm font-bold text-[var(--color-primary)]">${o.total?.toLocaleString()}</span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 

@@ -219,7 +219,7 @@ export default function Home() {
               >
                 <Link to={`/products?category=${cat.slug}`} className="category-card block">
                   <img
-                    src={cat.image}
+                    src={cat.image_url || cat.image}
                     alt={cat.name}
                     className="w-full h-full object-cover transition-transform duration-500"
                     loading="lazy"
