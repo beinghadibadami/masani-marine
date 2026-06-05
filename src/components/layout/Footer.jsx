@@ -60,7 +60,11 @@ export function Footer() {
               <ul className="space-y-2">
                 {QUICK_LINKS.map(link => (
                   <li key={link.to}>
-                    <Link to={link.to} className="text-white/60 hover:text-[var(--color-accent)] text-sm transition-colors flex items-center gap-2">
+                    <Link 
+                      to={link.to} 
+                      onClick={() => window.scrollTo(0, 0)}
+                      className="text-white/60 hover:text-[var(--color-accent)] text-sm transition-colors flex items-center gap-2"
+                    >
                       <span className="w-1 h-1 rounded-full bg-[var(--color-accent)]/40 inline-block" />
                       {link.label}
                     </Link>
@@ -78,7 +82,11 @@ export function Footer() {
               <ul className="space-y-2">
                 {CATEGORY_LINKS.map(link => (
                   <li key={link.to}>
-                    <Link to={link.to} className="text-white/60 hover:text-[var(--color-accent)] text-sm transition-colors flex items-center gap-2">
+                    <Link 
+                      to={link.to} 
+                      onClick={() => window.scrollTo(0, 0)}
+                      className="text-white/60 hover:text-[var(--color-accent)] text-sm transition-colors flex items-center gap-2"
+                    >
                       <span className="w-1 h-1 rounded-full bg-[var(--color-accent)]/40 inline-block" />
                       {link.label}
                     </Link>

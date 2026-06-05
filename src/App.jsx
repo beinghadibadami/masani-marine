@@ -12,6 +12,7 @@ import { ProtectedRoute, AdminRoute } from './components/auth/ProtectedRoute'
 // Layouts
 import { MainLayout } from './components/layout/MainLayout'
 import { AdminLayout } from './components/layout/AdminLayout'
+import { ScrollToTop } from './components/layout/ScrollToTop'
 
 // Public Pages
 import Home from './pages/Home'
@@ -55,6 +56,7 @@ export default function App() {
         <CartProvider>
           <ToastProvider>
             <BrowserRouter>
+              <ScrollToTop />
               <Routes>
                 
                 {/* Main Public Application */}
