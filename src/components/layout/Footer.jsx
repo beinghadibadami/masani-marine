@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Anchor, Mail, Phone, MapPin, Globe, MessageSquare, Share2 } from 'lucide-react'
+import { useCategories } from '../../hooks/useCategories'
 
 const QUICK_LINKS = [
   { to: '/', label: 'Home' },
@@ -19,6 +20,15 @@ const CATEGORY_LINKS = [
 ]
 
 export function Footer() {
+  const { categories } = useCategories()
+  
+  const displayCategories = categories && categories.length > 0 
+    ? categories.map(cat => ({
+        to: `/products?category=${cat.slug}`,
+        label: cat.name
+      }))
+    : CATEGORY_LINKS
+
   return (
     <footer className="bg-[var(--color-navy)] text-white relative overflow-hidden">
       {/* Decorative waves */}
@@ -80,7 +90,7 @@ export function Footer() {
                 Categories
               </h4>
               <ul className="space-y-2">
-                {CATEGORY_LINKS.map(link => (
+                {displayCategories.map(link => (
                   <li key={link.to}>
                     <Link 
                       to={link.to} 
