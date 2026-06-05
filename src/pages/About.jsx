@@ -52,7 +52,7 @@ function StatBox({ value, suffix, label, icon: Icon }) {
         {Icon && <Icon size={22} />}
       </div>
       {/* Number */}
-      <div className="text-4xl font-extrabold leading-none" style={{ color: '#0077A8', fontFamily: 'Inter, sans-serif', letterSpacing: '-0.03em' }}>
+      <div className="text-4xl font-extrabold leading-none" style={{ color: '#000000', fontFamily: 'Inter, sans-serif', letterSpacing: '-0.03em' }}>
         {count}{suffix}
       </div>
       {/* Label */}
