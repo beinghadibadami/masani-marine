@@ -57,7 +57,7 @@ export function useOrders() {
 
     for (const item of cartItems) {
       const product = currentProducts.find(p => p.id === item.id)
-      const availableStock = product ? (product.stock ?? product.stock_quantity ?? 0) : 0
+      const availableStock = product ? Math.max(product.stock ?? 0, product.stock_quantity ?? 0) : 0
       if (!product || availableStock < item.quantity) {
         throw new Error(`Insufficient stock for ${product?.name || 'unknown item'}`)
       }
@@ -99,7 +99,7 @@ export function useOrders() {
       // 4. Update stock levels
       for (const item of cartItems) {
         const currentProd = currentProducts.find(p => p.id === item.id)
-        const currentStockVal = currentProd ? (currentProd.stock ?? currentProd.stock_quantity ?? 0) : 0
+        const currentStockVal = currentProd ? Math.max(currentProd.stock ?? 0, currentProd.stock_quantity ?? 0) : 0
         const newStock = Math.max(0, currentStockVal - item.quantity)
 
         const { error: stockUpdateError } = await supabase

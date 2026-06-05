@@ -45,7 +45,7 @@ export function useProducts(filters = {}) {
       const { data, error: qError } = await query
       if (qError) throw qError
       const normalizedData = (data || []).map(p => {
-        const qty = p.stock ?? p.stock_quantity ?? 0
+        const qty = Math.max(p.stock ?? 0, p.stock_quantity ?? 0)
         return {
           ...p,
           stock: qty,
@@ -69,7 +69,7 @@ export function useProducts(filters = {}) {
       .single()
     if (error) throw error
     if (data) {
-      const qty = data.stock ?? data.stock_quantity ?? 0
+      const qty = Math.max(data.stock ?? 0, data.stock_quantity ?? 0)
       return {
         ...data,
         stock: qty,
@@ -88,7 +88,7 @@ export function useProducts(filters = {}) {
       .eq('is_visible', true)
       .limit(limit)
     return (data || []).map(p => {
-      const qty = p.stock ?? p.stock_quantity ?? 0
+      const qty = Math.max(p.stock ?? 0, p.stock_quantity ?? 0)
       return {
         ...p,
         stock: qty,
@@ -107,7 +107,7 @@ export function useProducts(filters = {}) {
       .eq('is_visible', true)
       .limit(10)
     return (data || []).map(p => {
-      const qty = p.stock ?? p.stock_quantity ?? 0
+      const qty = Math.max(p.stock ?? 0, p.stock_quantity ?? 0)
       return {
         ...p,
         stock: qty,
