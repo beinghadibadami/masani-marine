@@ -18,9 +18,13 @@ export function useProducts(filters = {}) {
   async function fetchProducts() {
     setIsLoading(true)
     try {
+      const selectStr = filters.category 
+        ? '*, categories!inner(name, slug)' 
+        : '*, categories(name, slug)'
+      
       let query = supabase
         .from('products')
-        .select('*, categories(name, slug)')
+        .select(selectStr)
         
       if (!filters.admin) {
         query = query.eq('is_visible', true)
