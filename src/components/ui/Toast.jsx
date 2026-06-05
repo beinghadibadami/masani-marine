@@ -35,7 +35,7 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={toast}>
       {children}
-      <div className="fixed bottom-6 right-6 z-[500] flex flex-col gap-3 max-w-sm w-full sm:w-auto">
+      <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-3 max-w-md w-full px-4 sm:px-0 items-center">
         <AnimatePresence>
           {toasts.map(t => (
             <ToastItem key={t.id} toast={t} onRemove={removeToast} />
@@ -84,12 +84,12 @@ function ToastItem({ toast, onRemove }) {
 
   return (
     <motion.div
-      initial={{ x: 120, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      exit={{ x: 120, opacity: 0 }}
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: -20, opacity: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       className={`toast ${classes[toast.type]} relative overflow-hidden`}
-      style={{ minWidth: '280px', maxWidth: '380px' }}
+      style={{ minWidth: '320px', maxWidth: '450px' }}
     >
       {icons[toast.type]}
       <span className="flex-1 leading-snug">{toast.message}</span>

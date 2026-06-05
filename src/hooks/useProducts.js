@@ -44,7 +44,16 @@ export function useProducts(filters = {}) {
 
       const { data, error: qError } = await query
       if (qError) throw qError
-      setProducts(data || [])
+      const normalizedData = (data || []).map(p => {
+        const qty = p.stock ?? p.stock_quantity ?? 0
+        return {
+          ...p,
+          stock: qty,
+          stock_quantity: qty,
+          stockQuantity: qty
+        }
+      })
+      setProducts(normalizedData)
     } catch (err) {
       setError(err)
     } finally {
@@ -59,6 +68,15 @@ export function useProducts(filters = {}) {
       .eq('slug', slug)
       .single()
     if (error) throw error
+    if (data) {
+      const qty = data.stock ?? data.stock_quantity ?? 0
+      return {
+        ...data,
+        stock: qty,
+        stock_quantity: qty,
+        stockQuantity: qty
+      }
+    }
     return data
   }
 
@@ -69,7 +87,15 @@ export function useProducts(filters = {}) {
       .eq('categories.slug', categorySlug)
       .eq('is_visible', true)
       .limit(limit)
-    return data || []
+    return (data || []).map(p => {
+      const qty = p.stock ?? p.stock_quantity ?? 0
+      return {
+        ...p,
+        stock: qty,
+        stock_quantity: qty,
+        stockQuantity: qty
+      }
+    })
   }
 
   async function searchProducts(term) {
@@ -80,7 +106,15 @@ export function useProducts(filters = {}) {
       .or(`name.ilike.%${term}%,sku.ilike.%${term}%`)
       .eq('is_visible', true)
       .limit(10)
-    return data || []
+    return (data || []).map(p => {
+      const qty = p.stock ?? p.stock_quantity ?? 0
+      return {
+        ...p,
+        stock: qty,
+        stock_quantity: qty,
+        stockQuantity: qty
+      }
+    })
   }
 
   // Admin CRUD

@@ -444,21 +444,10 @@ select.input {
   font-size: 0.92rem;
   min-width: 280px;
   max-width: 400px;
-  animation: slideInRight 0.35s ease forwards;
 }
 .toast-success { background: #059669; color: #fff; }
 .toast-error { background: #dc2626; color: #fff; }
 .toast-info { background: var(--color-primary); color: #fff; }
-
-@keyframes slideInRight {
-  from { transform: translateX(120%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-@keyframes slideOutRight {
-  from { transform: translateX(0); opacity: 1; }
-  to { transform: translateX(120%); opacity: 0; }
-}
-.toast-exit { animation: slideOutRight 0.3s ease forwards; }
 
 /* Loader */
 .loader {

@@ -164,7 +164,8 @@ export default function ProductForm() {
       category_id: formData.category_id || null, // Ensure null if empty
       specifications: specObj,
       images: imageUrls.filter(url => url.trim()),
-      stock_quantity: parseInt(formData.stock_quantity),
+      stock: parseInt(formData.stock_quantity), // Database 'stock' column
+      stock_quantity: parseInt(formData.stock_quantity), // Database 'stock_quantity' column
       price: parseFloat(formData.price),
       shipping_cost: parseFloat(formData.shipping_cost || 0)
     }

@@ -50,14 +50,15 @@ export function useOrders() {
     // 1. Verify stock before proceeding
     const { data: currentProducts, error: stockCheckError } = await supabase
       .from('products')
-      .select('id, name, stock')
+      .select('id, name, stock, stock_quantity')
       .in('id', cartItems.map(i => i.id))
 
     if (stockCheckError) throw new Error('Could not verify stock: ' + stockCheckError.message)
 
     for (const item of cartItems) {
       const product = currentProducts.find(p => p.id === item.id)
-      if (!product || product.stock < item.quantity) {
+      const availableStock = product ? (product.stock ?? product.stock_quantity ?? 0) : 0
+      if (!product || availableStock < item.quantity) {
         throw new Error(`Insufficient stock for ${product?.name || 'unknown item'}`)
       }
     }
@@ -97,6 +98,10 @@ export function useOrders() {
 
       // 4. Update stock levels
       for (const item of cartItems) {
+        const currentProd = currentProducts.find(p => p.id === item.id)
+        const currentStockVal = currentProd ? (currentProd.stock ?? currentProd.stock_quantity ?? 0) : 0
+        const newStock = Math.max(0, currentStockVal - item.quantity)
+
         const { error: stockUpdateError } = await supabase
           .rpc('decrement_stock', { 
             row_id: item.id, 
@@ -107,7 +112,18 @@ export function useOrders() {
         if (stockUpdateError) {
            await supabase
             .from('products')
-            .update({ stock: (currentProducts.find(p => p.id === item.id).stock - item.quantity) })
+            .update({ 
+              stock: newStock,
+              stock_quantity: newStock
+            })
+            .eq('id', item.id)
+        } else {
+           // RPC decrements stock, but we must keep stock_quantity in sync
+           await supabase
+            .from('products')
+            .update({ 
+              stock_quantity: newStock
+            })
             .eq('id', item.id)
         }
       }
